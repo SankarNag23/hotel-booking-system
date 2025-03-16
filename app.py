@@ -5,6 +5,10 @@ import os
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-123')
 
+# Print startup message
+print("Starting Hotel Booking System...")
+print("Environment:", os.environ.get('FLASK_ENV', 'development'))
+
 # In-memory database (we'll enhance this later)
 HOTELS = [
     {
@@ -41,22 +45,30 @@ BOOKINGS = []
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    try:
+        return render_template('index.html')
+    except Exception as e:
+        print(f"Error rendering index: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
 
 @app.route('/api/hotels')
 def get_hotels():
-    min_price = float(request.args.get('min_price', 0))
-    max_price = float(request.args.get('max_price', 1000))
-    min_rating = int(request.args.get('min_rating', 1))
-    
-    filtered_hotels = [
-        hotel for hotel in HOTELS
-        if min_price <= hotel['price'] <= max_price
-        and hotel['rating'] >= min_rating
-        and hotel['rooms_available'] > 0
-    ]
-    
-    return jsonify({"success": True, "hotels": filtered_hotels})
+    try:
+        min_price = float(request.args.get('min_price', 0))
+        max_price = float(request.args.get('max_price', 1000))
+        min_rating = int(request.args.get('min_rating', 1))
+        
+        filtered_hotels = [
+            hotel for hotel in HOTELS
+            if min_price <= hotel['price'] <= max_price
+            and hotel['rating'] >= min_rating
+            and hotel['rooms_available'] > 0
+        ]
+        
+        return jsonify({"success": True, "hotels": filtered_hotels})
+    except Exception as e:
+        print(f"Error getting hotels: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/book', methods=['POST'])
 def book_hotel():
@@ -114,19 +126,30 @@ def book_hotel():
         })
         
     except Exception as e:
+        print(f"Error booking hotel: {str(e)}")
         return jsonify({
             "success": False,
             "error": str(e)
-        }), 400
+        }), 500
 
 @app.route('/api/bookings/<booking_id>')
 def get_booking(booking_id):
-    booking = next((b for b in BOOKINGS if b['booking_id'] == booking_id), None)
-    if booking:
-        return jsonify({"success": True, "booking": booking})
-    return jsonify({"success": False, "error": "Booking not found"}), 404
+    try:
+        booking = next((b for b in BOOKINGS if b['booking_id'] == booking_id), None)
+        if booking:
+            return jsonify({"success": True, "booking": booking})
+        return jsonify({"success": False, "error": "Booking not found"}), 404
+    except Exception as e:
+        print(f"Error getting booking: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/health')
+def health_check():
+    return jsonify({"status": "healthy", "timestamp": datetime.now().isoformat()})
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     debug = os.environ.get('FLASK_ENV') == 'development'
+    print(f"Starting server on port {port}")
+    print(f"Debug mode: {debug}")
     app.run(host='0.0.0.0', port=port, debug=debug) 
