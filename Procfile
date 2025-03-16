@@ -1,1 +1,1 @@
-web: hypercorn app:app --bind 0.0.0.0:$PORT --workers 4 
+web: uvicorn app:app --host 0.0.0.0 --port $PORT --workers 4 

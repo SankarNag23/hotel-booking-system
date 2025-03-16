@@ -1,13 +1,13 @@
 from flask import Flask, render_template, jsonify, request
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
-import asyncio
+import httpx
 from services.hotel_aggregator import HotelAggregator
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-123')
 
-# Initialize the hotel aggregator
+# Initialize the hotel aggregator with httpx client
 hotel_aggregator = HotelAggregator()
 
 # Print startup message
@@ -15,7 +15,7 @@ print("Starting Hotel Booking System...")
 print("Environment:", os.environ.get('FLASK_ENV', 'development'))
 print("Server starting on port:", os.environ.get('PORT', 5000))
 
-# In-memory database (we'll enhance this later)
+# In-memory database
 HOTELS = [
     {
         "id": 1,
@@ -64,30 +64,16 @@ async def get_hotels():
         min_price = float(request.args.get('min_price', 0))
         max_price = float(request.args.get('max_price', 1000))
         min_rating = int(request.args.get('min_rating', 1))
-        location = request.args.get('location', 'New York')  # Default location
-        check_in = datetime.strptime(request.args.get('check_in', datetime.now().strftime('%Y-%m-%d')), '%Y-%m-%d')
-        check_out = datetime.strptime(request.args.get('check_out', (datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')), '%Y-%m-%d')
-        guests = int(request.args.get('guests', 2))
-
-        # Prepare filters
-        filters = {
-            'min_price': min_price,
-            'max_price': max_price,
-            'min_rating': min_rating,
-            'no_payment_only': request.args.get('no_payment_only', '').lower() == 'true',
-            'free_cancellation_only': request.args.get('free_cancellation_only', '').lower() == 'true'
-        }
-
-        # Search hotels using the aggregator
-        results = await hotel_aggregator.search_hotels(
-            location=location,
-            check_in=check_in,
-            check_out=check_out,
-            guests=guests,
-            filters=filters
-        )
-
-        return jsonify({"success": True, "results": results})
+        
+        # Filter hotels based on criteria
+        filtered_hotels = [
+            hotel for hotel in HOTELS
+            if min_price <= hotel['price'] <= max_price
+            and hotel['rating'] >= min_rating
+            and hotel['rooms_available'] > 0
+        ]
+        
+        return jsonify({"success": True, "hotels": filtered_hotels})
     except Exception as e:
         print(f"Error getting hotels: {str(e)}")
         return jsonify({"success": False, "error": str(e)}), 500
