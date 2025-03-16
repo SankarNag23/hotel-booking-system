@@ -1,14 +1,9 @@
 from flask import Flask, render_template, jsonify, request
 from datetime import datetime, timedelta
 import os
-import httpx
-from services.hotel_aggregator import HotelAggregator
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-123')
-
-# Initialize the hotel aggregator with httpx client
-hotel_aggregator = HotelAggregator()
 
 # Print startup message
 print("Starting Hotel Booking System...")
@@ -58,7 +53,7 @@ def index():
         return jsonify({"error": "Internal server error"}), 500
 
 @app.route('/api/hotels')
-async def get_hotels():
+def get_hotels():
     try:
         # Get filter parameters
         min_price = float(request.args.get('min_price', 0))
@@ -78,21 +73,13 @@ async def get_hotels():
         print(f"Error getting hotels: {str(e)}")
         return jsonify({"success": False, "error": str(e)}), 500
 
-@app.route('/api/hotels/<hotel_id>')
-async def get_hotel_details(hotel_id):
+@app.route('/api/hotels/<int:hotel_id>')
+def get_hotel_details(hotel_id):
     try:
-        check_in = datetime.strptime(request.args.get('check_in', datetime.now().strftime('%Y-%m-%d')), '%Y-%m-%d')
-        check_out = datetime.strptime(request.args.get('check_out', (datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')), '%Y-%m-%d')
-        guests = int(request.args.get('guests', 2))
-
-        details = await hotel_aggregator.get_hotel_details(
-            hotel_id=hotel_id,
-            check_in=check_in,
-            check_out=check_out,
-            guests=guests
-        )
-
-        return jsonify({"success": True, "hotel": details})
+        hotel = next((h for h in HOTELS if h['id'] == hotel_id), None)
+        if hotel:
+            return jsonify({"success": True, "hotel": hotel})
+        return jsonify({"success": False, "error": "Hotel not found"}), 404
     except Exception as e:
         print(f"Error getting hotel details: {str(e)}")
         return jsonify({"success": False, "error": str(e)}), 500
@@ -176,7 +163,7 @@ def health_check():
     return jsonify({
         "status": "healthy",
         "timestamp": datetime.now().isoformat(),
-        "version": "2.0.0"
+        "version": "1.0.0"
     })
 
 if __name__ == '__main__':
