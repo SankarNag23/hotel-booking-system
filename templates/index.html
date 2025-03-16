@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hotel Booking System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .hotel-card { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-primary">
+        <div class="container">
+            <span class="navbar-brand">Hotel Booking System</span>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div id="hotelList" class="row">
+            <div class="col-12">
+                <div class="text-center">
+                    <h3>Loading hotels...</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load hotels when page loads
+        window.addEventListener('load', function() {
+            fetch('/api/hotels')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.hotels) {
+                        const hotelList = document.getElementById('hotelList');
+                        hotelList.innerHTML = data.hotels.map(hotel => `
+                            <div class="col-md-6">
+                                <div class="card hotel-card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">${hotel.name}</h5>
+                                        <p class="card-text">
+                                            <strong>Price:</strong> $${hotel.price_per_night}/night<br>
+                                            <strong>Rating:</strong> ${'⭐'.repeat(hotel.stars)}<br>
+                                            ${hotel.description}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        document.getElementById('hotelList').innerHTML = 
+                            '<div class="col-12"><div class="alert alert-warning">No hotels found</div></div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('hotelList').innerHTML = 
+                        '<div class="col-12"><div class="alert alert-danger">Error loading hotels</div></div>';
+                });
+        });
+    </script>
+</body>
+</html> 

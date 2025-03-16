@@ -1,0 +1,108 @@
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+                url('https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&w=1920');
+    background-size: cover;
+    background-position: center;
+    padding: 80px 0;
+    margin-bottom: 30px;
+}
+
+.hero-section h1 {
+    font-size: 3rem;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.search-container {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+}
+
+/* Form Styles */
+.form-label {
+    font-weight: 500;
+    color: #333;
+}
+
+.form-control {
+    border-radius: 8px;
+    padding: 10px 15px;
+    border: 1px solid #dee2e6;
+}
+
+.form-control:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Hotel Cards */
+.hotel-card {
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.hotel-card:hover {
+    transform: translateY(-5px);
+}
+
+.hotel-card img {
+    height: 200px;
+    object-fit: cover;
+}
+
+.hotel-amenities {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 10px 0;
+}
+
+.amenity-badge {
+    background-color: #e9ecef;
+    color: #495057;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+}
+
+.hotel-rating {
+    color: #ffc107;
+    font-weight: bold;
+}
+
+.hotel-price {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #0d6efd;
+}
+
+/* Booking Modal */
+.modal-content {
+    border-radius: 15px;
+}
+
+.modal-header {
+    border-bottom: 2px solid #f8f9fa;
+}
+
+.modal-footer {
+    border-top: 2px solid #f8f9fa;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 40px 0;
+    }
+
+    .hero-section h1 {
+        font-size: 2rem;
+    }
+
+    .search-container {
+        padding: 15px !important;
+    }
+} 
