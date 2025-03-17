@@ -7,10 +7,8 @@ services:
     buildCommand: |
       python -m pip install --upgrade pip
       pip install -r requirements.txt
-      pip install gunicorn==20.1.0
     startCommand: |
-      export PATH=$PATH:/usr/local/bin
-      gunicorn app:app --bind 0.0.0.0:$PORT --workers 4
+      python -m gunicorn app:app --bind 0.0.0.0:$PORT --workers 4
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.0
@@ -21,4 +19,8 @@ services:
       - key: PYTHONPATH
         value: .
       - key: RENDER_EXTERNAL_URL
-        value: https://hotel-booking-system.onrender.com 
+        value: https://hotel-booking-system.onrender.com
+      - key: RENDER_SERVICE_TYPE
+        value: web
+      - key: RENDER_SERVICE_RUNTIME
+        value: python 

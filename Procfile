@@ -1,1 +1,1 @@
-web: /usr/local/bin/gunicorn app:app --bind 0.0.0.0:$PORT --workers 4 
+web: python -m gunicorn app:app --bind 0.0.0.0:$PORT --workers 4 
