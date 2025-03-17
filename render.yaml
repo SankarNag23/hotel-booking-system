@@ -2,15 +2,8 @@ services:
   - type: web
     name: hotel-booking-system
     env: python
-    region: oregon
-    plan: free
-    buildCommand: |
-      python -m pip install --upgrade pip
-      pip install -r requirements.txt
-      chmod +x build.sh
-    startCommand: |
-      export PYTHONPATH=$PYTHONPATH:$(pwd)
-      python -m gunicorn app:app --bind 0.0.0.0:$PORT --workers 4 --timeout 120 --log-level info
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 4 --timeout 120
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.0
@@ -18,5 +11,7 @@ services:
         value: production
       - key: PORT
         value: 10000
-      - key: PYTHONPATH
-        value: . 
+    healthCheckPath: /health
+    autoDeploy: true
+    plan: free
+    region: oregon
