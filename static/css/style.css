@@ -1,20 +1,21 @@
-/* Hotel Booking System Styles */
+/* Modern UI Styles */
 body {
     background-color: #f8f9fa;
 }
 
 .navbar {
-    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .card {
     border: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,.05);
-    transition: transform 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
 }
 
 .card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
 .hotel-card {
@@ -24,6 +25,11 @@ body {
 .hotel-image {
     height: 200px;
     object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.card:hover .hotel-image {
+    transform: scale(1.05);
 }
 
 .rating {
@@ -36,10 +42,43 @@ body {
     color: #28a745;
 }
 
-.modal-content {
-    border-radius: 0.5rem;
+/* Location search dropdown */
+#locationSuggestions {
+    max-height: 200px;
+    overflow-y: auto;
 }
 
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* Loading spinner */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* Modal styles */
+.modal-content {
+    border: none;
+    border-radius: 10px;
+}
+
+.modal-header {
+    border-bottom: 1px solid #dee2e6;
+    padding: 1.5rem;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    border-top: 1px solid #dee2e6;
+    padding: 1.5rem;
+}
+
+/* Form styles */
 .form-control:focus {
     border-color: #80bdff;
     box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
@@ -48,14 +87,48 @@ body {
 .btn-primary {
     background-color: #007bff;
     border-color: #007bff;
+    transition: all 0.2s ease;
+    padding: 0.5rem 1.5rem;
 }
 
 .btn-primary:hover {
     background-color: #0069d9;
     border-color: #0062cc;
+    transform: translateY(-1px);
 }
 
-.spinner-border {
-    width: 3rem;
-    height: 3rem;
+/* Alert styles */
+.alert {
+    border: none;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .hotel-image {
+        height: 150px;
+    }
+    
+    .container {
+        padding: 1rem;
+    }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
 }
