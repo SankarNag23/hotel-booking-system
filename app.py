@@ -1,48 +1,18 @@
 from flask import Flask, render_template, jsonify, request
 from datetime import datetime, timedelta
 import os
+from services.hotel_providers import HotelProviderFactory
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-123')
+
+# Initialize hotel provider
+hotel_provider = HotelProviderFactory()
 
 # Print startup message
 print("Starting Hotel Booking System...")
 print("Environment:", os.environ.get('FLASK_ENV', 'development'))
 print("Server starting on port:", os.environ.get('PORT', 5000))
-
-# In-memory database
-HOTELS = [
-    {
-        "id": 1,
-        "name": "Grand Hotel",
-        "price": 200,
-        "rating": 4,
-        "description": "Luxury hotel in the city center with pool and spa.",
-        "image": "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&w=800",
-        "rooms_available": 5
-    },
-    {
-        "id": 2,
-        "name": "Seaside Resort",
-        "price": 180,
-        "rating": 5,
-        "description": "Beautiful beachfront resort with ocean views.",
-        "image": "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&w=800",
-        "rooms_available": 3
-    },
-    {
-        "id": 3,
-        "name": "Budget Inn",
-        "price": 120,
-        "rating": 3,
-        "description": "Comfortable and affordable accommodation.",
-        "image": "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&w=800",
-        "rooms_available": 8
-    }
-]
-
-# In-memory bookings storage
-BOOKINGS = []
 
 @app.route('/')
 def index():
@@ -52,14 +22,37 @@ def index():
         print(f"Error rendering index: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500
 
+@app.route('/api/v1/locations')
+def search_locations():
+    query = request.args.get('q', '')
+    locations = hotel_provider.search_locations(query)
+    return jsonify(locations)
+
 @app.route('/api/v1/hotels')
 def list_hotels():
-    hotels = HOTELS
+    # Get search parameters
+    location = request.args.get('location', 'New York City')  # Default to NYC
+    check_in = request.args.get('check_in', datetime.now().strftime('%Y-%m-%d'))
+    check_out = request.args.get('check_out', (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d'))
+    guests = int(request.args.get('guests', 2))
+    min_price = request.args.get('min_price')
+    max_price = request.args.get('max_price')
+    min_rating = request.args.get('min_rating')
+
+    hotels = hotel_provider.search_hotels(
+        location=location,
+        check_in=check_in,
+        check_out=check_out,
+        guests=guests,
+        min_price=min_price,
+        max_price=max_price,
+        min_rating=min_rating
+    )
     return jsonify(hotels)
 
-@app.route('/api/v1/hotels/<int:hotel_id>')
+@app.route('/api/v1/hotels/<hotel_id>')
 def get_hotel(hotel_id):
-    hotel = next((h for h in HOTELS if h['id'] == hotel_id), None)
+    hotel = hotel_provider.get_hotel_details(hotel_id)
     if hotel is None:
         return jsonify({'error': 'Hotel not found'}), 404
     return jsonify(hotel)
@@ -70,63 +63,15 @@ def book_hotel():
     if not data:
         return jsonify({'error': 'No data provided'}), 400
     
-    hotel_id = data.get('hotel_id')
-    guest_name = data.get('guest_name')
-    guest_email = data.get('guest_email')
-    check_in = data.get('check_in')
-    check_out = data.get('check_out')
-    
-    # Validate required fields
-    if not all([hotel_id, guest_name, guest_email, check_in, check_out]):
-        return jsonify({
-            "success": False,
-            "error": "Missing required booking information"
-        }), 400
-        
-    # Find hotel and check availability
-    hotel = next((h for h in HOTELS if h['id'] == hotel_id), None)
-    if not hotel:
-        return jsonify({
-            "success": False,
-            "error": "Hotel not found"
-        }), 404
-        
-    if hotel['rooms_available'] <= 0:
-        return jsonify({
-            "success": False,
-            "error": "No rooms available"
-        }), 400
-        
-    # Create booking
-    booking_id = f"BK{datetime.now().strftime('%Y%m%d%H%M%S')}"
-    booking = {
-        "booking_id": booking_id,
-        "hotel_id": hotel_id,
-        "guest_name": guest_name,
-        "guest_email": guest_email,
-        "check_in": check_in,
-        "check_out": check_out,
-        "total_price": hotel['price'],
-        "status": "confirmed",
-        "created_at": datetime.now().isoformat()
-    }
-    
-    # Update availability
-    hotel['rooms_available'] -= 1
-    BOOKINGS.append(booking)
+    booking = hotel_provider.create_booking(data)
+    if booking is None:
+        return jsonify({'error': 'Failed to create booking'}), 500
     
     return jsonify({
-        "success": True,
-        "booking": booking,
-        "message": "Booking confirmed!"
+        'success': True,
+        'booking': booking,
+        'message': 'Booking confirmed!'
     })
-
-@app.route('/api/v1/bookings/<booking_id>')
-def get_booking(booking_id):
-    booking = next((b for b in BOOKINGS if b['booking_id'] == booking_id), None)
-    if booking is None:
-        return jsonify({'error': 'Booking not found'}), 404
-    return jsonify(booking)
 
 @app.route('/health')
 def health_check():
