@@ -4,18 +4,23 @@ body {
 }
 
 .navbar {
+    margin-bottom: 2rem;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .card {
     border: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
 }
 
 .card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.card-img-top {
+    height: 200px;
+    object-fit: cover;
 }
 
 .hotel-card {
@@ -78,10 +83,18 @@ body {
     padding: 1.5rem;
 }
 
+.modal-dialog {
+    max-width: 500px;
+}
+
 /* Form styles */
 .form-control:focus {
     border-color: #80bdff;
     box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+.form-label {
+    font-weight: 500;
 }
 
 .btn-primary {
@@ -92,9 +105,8 @@ body {
 }
 
 .btn-primary:hover {
-    background-color: #0069d9;
-    border-color: #0062cc;
     transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* Alert styles */
@@ -131,4 +143,48 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
     background: #555;
+}
+
+/* Container padding */
+.container {
+    padding-bottom: 2rem;
+}
+
+/* Search form */
+#searchForm {
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+/* Hotel list */
+#hotelList {
+    margin-top: 2rem;
+}
+
+/* Responsive images */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Loading text */
+.loading-text {
+    color: #6c757d;
+    margin-top: 1rem;
+}
+
+/* Error message */
+.error-message {
+    color: #dc3545;
+    text-align: center;
+    padding: 2rem;
+}
+
+/* Success message */
+.success-message {
+    color: #28a745;
+    text-align: center;
+    padding: 2rem;
 }
