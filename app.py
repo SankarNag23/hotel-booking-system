@@ -52,110 +52,81 @@ def index():
         print(f"Error rendering index: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500
 
-@app.route('/api/hotels')
-def get_hotels():
-    try:
-        # Get filter parameters
-        min_price = float(request.args.get('min_price', 0))
-        max_price = float(request.args.get('max_price', 1000))
-        min_rating = int(request.args.get('min_rating', 1))
-        
-        # Filter hotels based on criteria
-        filtered_hotels = [
-            hotel for hotel in HOTELS
-            if min_price <= hotel['price'] <= max_price
-            and hotel['rating'] >= min_rating
-            and hotel['rooms_available'] > 0
-        ]
-        
-        return jsonify({"success": True, "hotels": filtered_hotels})
-    except Exception as e:
-        print(f"Error getting hotels: {str(e)}")
-        return jsonify({"success": False, "error": str(e)}), 500
+@app.route('/api/v1/hotels')
+def list_hotels():
+    hotels = HOTELS
+    return jsonify(hotels)
 
-@app.route('/api/hotels/<int:hotel_id>')
-def get_hotel_details(hotel_id):
-    try:
-        hotel = next((h for h in HOTELS if h['id'] == hotel_id), None)
-        if hotel:
-            return jsonify({"success": True, "hotel": hotel})
-        return jsonify({"success": False, "error": "Hotel not found"}), 404
-    except Exception as e:
-        print(f"Error getting hotel details: {str(e)}")
-        return jsonify({"success": False, "error": str(e)}), 500
+@app.route('/api/v1/hotels/<int:hotel_id>')
+def get_hotel(hotel_id):
+    hotel = next((h for h in HOTELS if h['id'] == hotel_id), None)
+    if hotel is None:
+        return jsonify({'error': 'Hotel not found'}), 404
+    return jsonify(hotel)
 
-@app.route('/api/book', methods=['POST'])
+@app.route('/api/v1/book', methods=['POST'])
 def book_hotel():
-    try:
-        data = request.get_json()
-        hotel_id = data.get('hotel_id')
-        guest_name = data.get('guest_name')
-        guest_email = data.get('guest_email')
-        check_in = data.get('check_in')
-        check_out = data.get('check_out')
-        
-        # Validate required fields
-        if not all([hotel_id, guest_name, guest_email, check_in, check_out]):
-            return jsonify({
-                "success": False,
-                "error": "Missing required booking information"
-            }), 400
-            
-        # Find hotel and check availability
-        hotel = next((h for h in HOTELS if h['id'] == hotel_id), None)
-        if not hotel:
-            return jsonify({
-                "success": False,
-                "error": "Hotel not found"
-            }), 404
-            
-        if hotel['rooms_available'] <= 0:
-            return jsonify({
-                "success": False,
-                "error": "No rooms available"
-            }), 400
-            
-        # Create booking
-        booking_id = f"BK{datetime.now().strftime('%Y%m%d%H%M%S')}"
-        booking = {
-            "booking_id": booking_id,
-            "hotel_id": hotel_id,
-            "guest_name": guest_name,
-            "guest_email": guest_email,
-            "check_in": check_in,
-            "check_out": check_out,
-            "total_price": hotel['price'],
-            "status": "confirmed",
-            "created_at": datetime.now().isoformat()
-        }
-        
-        # Update availability
-        hotel['rooms_available'] -= 1
-        BOOKINGS.append(booking)
-        
-        return jsonify({
-            "success": True,
-            "booking": booking,
-            "message": "Booking confirmed!"
-        })
-        
-    except Exception as e:
-        print(f"Error booking hotel: {str(e)}")
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+    
+    hotel_id = data.get('hotel_id')
+    guest_name = data.get('guest_name')
+    guest_email = data.get('guest_email')
+    check_in = data.get('check_in')
+    check_out = data.get('check_out')
+    
+    # Validate required fields
+    if not all([hotel_id, guest_name, guest_email, check_in, check_out]):
         return jsonify({
             "success": False,
-            "error": str(e)
-        }), 500
+            "error": "Missing required booking information"
+        }), 400
+        
+    # Find hotel and check availability
+    hotel = next((h for h in HOTELS if h['id'] == hotel_id), None)
+    if not hotel:
+        return jsonify({
+            "success": False,
+            "error": "Hotel not found"
+        }), 404
+        
+    if hotel['rooms_available'] <= 0:
+        return jsonify({
+            "success": False,
+            "error": "No rooms available"
+        }), 400
+        
+    # Create booking
+    booking_id = f"BK{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    booking = {
+        "booking_id": booking_id,
+        "hotel_id": hotel_id,
+        "guest_name": guest_name,
+        "guest_email": guest_email,
+        "check_in": check_in,
+        "check_out": check_out,
+        "total_price": hotel['price'],
+        "status": "confirmed",
+        "created_at": datetime.now().isoformat()
+    }
+    
+    # Update availability
+    hotel['rooms_available'] -= 1
+    BOOKINGS.append(booking)
+    
+    return jsonify({
+        "success": True,
+        "booking": booking,
+        "message": "Booking confirmed!"
+    })
 
-@app.route('/api/bookings/<booking_id>')
+@app.route('/api/v1/bookings/<booking_id>')
 def get_booking(booking_id):
-    try:
-        booking = next((b for b in BOOKINGS if b['booking_id'] == booking_id), None)
-        if booking:
-            return jsonify({"success": True, "booking": booking})
-        return jsonify({"success": False, "error": "Booking not found"}), 404
-    except Exception as e:
-        print(f"Error getting booking: {str(e)}")
-        return jsonify({"success": False, "error": str(e)}), 500
+    booking = next((b for b in BOOKINGS if b['booking_id'] == booking_id), None)
+    if booking is None:
+        return jsonify({'error': 'Booking not found'}), 404
+    return jsonify(booking)
 
 @app.route('/health')
 def health_check():
