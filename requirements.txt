@@ -8,4 +8,8 @@ requests==2.31.0
 pydantic==1.8.2
 starlette==0.36.3
 typing-extensions==4.9.0
-httpx==0.24.1 
+httpx==0.24.1
+python-jose==3.3.0
+passlib==1.7.4
+bcrypt==3.2.0
+email-validator==1.1.3 

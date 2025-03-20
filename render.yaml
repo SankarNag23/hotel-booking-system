@@ -7,6 +7,10 @@ services:
     envVars:
       - key: BOOKING_API_KEY
         sync: false
+      - key: GOOGLE_HOTELS_API_KEY
+        sync: false
+      - key: GOOGLE_HOTELS_CLIENT_ID
+        sync: false
       - key: PORT
         value: 8000
       - key: PYTHON_VERSION
@@ -24,4 +28,8 @@ services:
         - requirements.txt
         - templates/**
         - static/**
-        - hotel_booking_system_v2.py 
+        - hotel_booking_system_v2.py
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-cache 

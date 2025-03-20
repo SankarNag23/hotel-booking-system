@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Dict, Optional
@@ -33,9 +33,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Get the absolute path to the static directory
-static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
-templates_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")
+# Get absolute paths for static files and templates
+current_dir = os.path.dirname(os.path.abspath(__file__))
+static_dir = os.path.join(current_dir, "static")
+templates_dir = os.path.join(current_dir, "templates")
+
+# Ensure directories exist
+os.makedirs(static_dir, exist_ok=True)
+os.makedirs(templates_dir, exist_ok=True)
 
 # Mount static files with absolute path
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
@@ -157,7 +162,15 @@ class BookingResponse(BaseModel):
     status: str
     hotels: List[Dict]
 
-async def get_google_hotels(location: str, check_in: str, check_out: str):
+class SearchRequest(BaseModel):
+    destination: str
+    check_in: str
+    check_out: str
+    guests: int
+    price_range: Optional[float] = None
+    amenities: Optional[List[str]] = None
+
+async def get_google_hotels(destination: str, check_in: str, check_out: str) -> List[dict]:
     """Fetch hotel data from Google Hotels API"""
     try:
         async with httpx.AsyncClient() as client:
@@ -166,7 +179,7 @@ async def get_google_hotels(location: str, check_in: str, check_out: str):
                 f"{GOOGLE_HOTELS_CONTENT_URL}",
                 params={
                     "key": GOOGLE_HOTELS_API_KEY,
-                    "location": location,
+                    "location": destination,
                     "languageCode": "en"
                 }
             )
@@ -176,7 +189,7 @@ async def get_google_hotels(location: str, check_in: str, check_out: str):
                 f"{GOOGLE_HOTELS_PRICES_URL}",
                 params={
                     "key": GOOGLE_HOTELS_API_KEY,
-                    "location": location,
+                    "location": destination,
                     "checkIn": check_in,
                     "checkOut": check_out
                 }
@@ -235,30 +248,28 @@ async def read_root(request: Request):
         )
 
 @app.post("/api/search", response_model=BookingResponse)
-async def search_hotels(booking_request: BookingRequest):
+async def search_hotels(request: SearchRequest):
     try:
         # Try to get hotels from Google Hotels API first
         hotels = await get_google_hotels(
-            booking_request.destination,
-            booking_request.check_in,
-            booking_request.check_out
+            request.destination,
+            request.check_in,
+            request.check_out
         )
         
-        # If no hotels found from Google API, fall back to mock data
+        # If no hotels found from Google API, use mock data
         if not hotels:
-            destination = booking_request.destination.lower()
+            destination = request.destination.lower()
             available_hotels = HOTELS.get(destination, [])
             
             # Filter hotels based on preferences
             filtered_hotels = []
             for hotel in available_hotels:
-                if not (booking_request.preferences["price_range"]["min"] <= hotel["price_per_night"] <= booking_request.preferences["price_range"]["max"]):
+                if not (request.price_range and request.price_range >= hotel["price_per_night"]):
                     continue
-                if hotel["stars"] < booking_request.preferences["min_stars"]:
+                if hotel["stars"] < request.guests:
                     continue
-                if booking_request.preferences["room_type"] not in hotel["room_types"]:
-                    continue
-                if not all(amenity in hotel["amenities"] for amenity in booking_request.preferences["amenities"]):
+                if request.amenities and not all(amenity in hotel["amenities"] for amenity in request.amenities):
                     continue
                 filtered_hotels.append(hotel)
             
