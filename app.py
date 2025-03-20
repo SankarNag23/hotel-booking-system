@@ -30,11 +30,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static files with explicit directory path
-app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static")), name="static")
+# Get the absolute path to the static directory
+static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+templates_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")
 
-# Templates with explicit directory path
-templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "templates"))
+# Mount static files with absolute path
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+# Templates with absolute path
+templates = Jinja2Templates(directory=templates_dir)
 
 # Initialize agents
 ui_agent = UserInterfaceAgent()
