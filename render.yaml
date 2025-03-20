@@ -5,10 +5,10 @@ services:
     plan: free
     buildCommand: |
       python -m pip install --upgrade pip
-      pip install -e .
+      pip install -r requirements.txt
       mkdir -p templates static
       echo '<!DOCTYPE html><html><head><title>Hotel Booking System</title></head><body><h1>Hotel Booking System</h1><p>Version 2.1</p></body></html>' > templates/index.html
-    startCommand: python -m uvicorn app.app:app --host 0.0.0.0 --port $PORT --reload
+    startCommand: python -m uvicorn app.app:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.7
@@ -23,12 +23,9 @@ services:
     buildFilter:
       paths:
         - app/**/*.py
-        - setup.py
-        - wsgi.py
         - requirements.txt
         - templates/**
         - static/**
-        - .env
     headers:
       - path: /*
         name: Cache-Control
