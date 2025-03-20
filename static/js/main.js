@@ -17,23 +17,57 @@ document.addEventListener('DOMContentLoaded', function() {
     const checkOut = flatpickr("#checkOut", dateConfig);
 
     // Handle form submission
-    document.getElementById('searchForm').addEventListener('submit', async function(e) {
+    document.getElementById('bookingForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         
-        const formData = new FormData(this);
-        const params = new URLSearchParams();
-        
-        params.append('min_price', document.getElementById('minPrice').value);
-        params.append('max_price', document.getElementById('maxPrice').value);
-        params.append('min_rating', document.getElementById('minRating').value);
+        if (!validateForm()) {
+            return;
+        }
+
+        setLoading(true);
 
         try {
-            const response = await fetch(`/api/v1/hotels`);
+            // Get selected amenities
+            const amenities = [];
+            document.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
+                amenities.push(checkbox.value);
+            });
+
+            const bookingRequest = {
+                destination: document.getElementById('destination').value,
+                check_in: document.getElementById('checkIn').value,
+                check_out: document.getElementById('checkOut').value,
+                adults: parseInt(document.getElementById('adults').value),
+                children: parseInt(document.getElementById('children').value),
+                preferences: {
+                    price_range: {
+                        min: parseInt(document.getElementById('minPrice').value),
+                        max: parseInt(document.getElementById('maxPrice').value)
+                    },
+                    min_stars: parseInt(document.getElementById('minStars').value),
+                    room_type: document.getElementById('roomType').value,
+                    amenities: amenities
+                }
+            };
+
+            const response = await fetch('/api/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(bookingRequest)
+            });
+
+            if (!response.ok) {
+                throw new Error('Search failed');
+            }
+
             const data = await response.json();
-            displayHotels(data);
+            displayHotels(data.hotels);
         } catch (error) {
-            console.error('Error:', error);
-            alert('An error occurred while searching for hotels.');
+            handleError(error);
+        } finally {
+            setLoading(false);
         }
     });
 });
@@ -42,11 +76,11 @@ function displayHotels(hotels) {
     const hotelList = document.getElementById('hotelList');
     hotelList.innerHTML = '';
 
-    if (hotels.length === 0) {
+    if (!hotels || hotels.length === 0) {
         hotelList.innerHTML = `
-            <div class="col-12 text-center">
-                <h3>No hotels found matching your criteria</h3>
-                <p>Please try adjusting your search parameters.</p>
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                No hotels found matching your criteria. Please try adjusting your search parameters.
             </div>
         `;
         return;
@@ -54,21 +88,32 @@ function displayHotels(hotels) {
 
     hotels.forEach(hotel => {
         const card = document.createElement('div');
-        card.className = 'col-md-4 mb-4';
+        card.className = 'hotel-card p-3 mb-4';
         card.innerHTML = `
-            <div class="card h-100">
-                <img src="${hotel.image}" class="card-img-top" alt="${hotel.name}">
-                <div class="card-body">
-                    <h5 class="card-title">${hotel.name}</h5>
+            <div class="row">
+                <div class="col-md-4">
+                    <img src="${hotel.image_url}" class="img-fluid rounded" alt="${hotel.name}">
+                </div>
+                <div class="col-md-8">
+                    <h4>${hotel.name}</h4>
+                    <p class="text-muted">${hotel.address}</p>
                     <div class="mb-2">
-                        ${'⭐'.repeat(hotel.rating)}
+                        ${'⭐'.repeat(hotel.stars)} ${hotel.rating} (${hotel.reviews} reviews)
                     </div>
-                    <p class="card-text">${hotel.description}</p>
-                    <p class="card-text"><strong>Price:</strong> $${hotel.price} per night</p>
-                    <p class="card-text"><small class="text-muted">Rooms available: ${hotel.rooms_available}</small></p>
-                    <button class="btn btn-primary w-100" onclick="showBookingModal(${JSON.stringify(hotel)})">
-                        Book Now
-                    </button>
+                    <p>${hotel.description}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="price-tag">$${hotel.price_per_night} per night</div>
+                        <button class="btn btn-primary" onclick="bookHotel('${hotel.id}')">
+                            <i class="fas fa-book me-2"></i>Book Now
+                        </button>
+                    </div>
+                    <div class="mt-2">
+                        ${hotel.amenities.map(amenity => `
+                            <span class="badge bg-light text-dark me-1">
+                                <i class="fas fa-${getAmenityIcon(amenity)} me-1"></i>${amenity}
+                            </span>
+                        `).join('')}
+                    </div>
                 </div>
             </div>
         `;
@@ -76,65 +121,57 @@ function displayHotels(hotels) {
     });
 }
 
-function showBookingModal(hotel) {
-    const modal = new bootstrap.Modal(document.getElementById('bookingModal'));
-    
-    // Set hotel ID in the form
-    document.getElementById('hotelId').value = hotel.id;
-    
-    // Clear previous form values
-    document.getElementById('guestName').value = '';
-    document.getElementById('guestEmail').value = '';
-    document.getElementById('checkIn').value = '';
-    document.getElementById('checkOut').value = '';
-    
-    modal.show();
+function getAmenityIcon(amenity) {
+    const icons = {
+        pool: 'swimming-pool',
+        breakfast: 'utensils',
+        parking: 'parking',
+        wifi: 'wifi',
+        fitness: 'dumbbell',
+        spa: 'spa',
+        restaurant: 'utensils',
+        bar: 'glass-martini-alt',
+        conference: 'users'
+    };
+    return icons[amenity] || 'check';
 }
 
-function confirmBooking() {
-    const hotelId = document.getElementById('hotelId').value;
-    const guestName = document.getElementById('guestName').value;
-    const guestEmail = document.getElementById('guestEmail').value;
-    const checkIn = document.getElementById('checkIn').value;
-    const checkOut = document.getElementById('checkOut').value;
+async function bookHotel(hotelId) {
+    try {
+        const bookingRequest = {
+            destination: document.getElementById('destination').value,
+            check_in: document.getElementById('checkIn').value,
+            check_out: document.getElementById('checkOut').value,
+            adults: parseInt(document.getElementById('adults').value),
+            children: parseInt(document.getElementById('children').value),
+            preferences: {
+                price_range: {
+                    min: parseInt(document.getElementById('minPrice').value),
+                    max: parseInt(document.getElementById('maxPrice').value)
+                },
+                min_stars: parseInt(document.getElementById('minStars').value),
+                room_type: document.getElementById('roomType').value,
+                amenities: Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value)
+            }
+        };
 
-    if (!guestName || !guestEmail || !checkIn || !checkOut) {
-        alert('Please fill in all required fields');
-        return;
-    }
+        const response = await fetch(`/api/book?hotel_id=${hotelId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(bookingRequest)
+        });
 
-    const bookingData = {
-        hotelId: hotelId,
-        guestName: guestName,
-        guestEmail: guestEmail,
-        checkIn: checkIn,
-        checkOut: checkOut,
-        guests: 2  // Default value
-    };
-
-    fetch('/api/v1/book', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(bookingData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Booking confirmed! Your booking ID is: ' + data.booking.booking_id);
-            const modal = bootstrap.Modal.getInstance(document.getElementById('bookingModal'));
-            modal.hide();
-            // Refresh hotel list to update availability
-            document.getElementById('searchForm').dispatchEvent(new Event('submit'));
-        } else {
-            alert('Error: ' + (data.error || 'Failed to create booking'));
+        if (!response.ok) {
+            throw new Error('Booking failed');
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while confirming your booking.');
-    });
+
+        const data = await response.json();
+        showSuccess(`Booking confirmed! Your booking reference is: ${data.confirmation.booking_reference}`);
+    } catch (error) {
+        handleError(error);
+    }
 }
 
 // Form validation
@@ -264,144 +301,4 @@ document.getElementById('children').addEventListener('change', function() {
     if (parseInt(this.value) < 0) {
         this.value = 0;
     }
-});
-
-document.getElementById('bookingForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const amenities = [];
-    document.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
-        amenities.push(checkbox.value);
-    });
-    
-    const bookingRequest = {
-        destination: document.getElementById('destination').value,
-        check_in: document.getElementById('checkIn').value,
-        check_out: document.getElementById('checkOut').value,
-        adults: parseInt(document.getElementById('adults').value),
-        children: parseInt(document.getElementById('children').value),
-        preferences: {
-            price_range: {
-                min: parseFloat(document.getElementById('minPrice').value),
-                max: parseFloat(document.getElementById('maxPrice').value)
-            },
-            min_stars: parseInt(document.getElementById('minStars').value),
-            room_type: document.getElementById('roomType').value,
-            amenities: amenities
-        }
-    };
-    
-    try {
-        const response = await fetch('/api/search', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(bookingRequest)
-        });
-        
-        const data = await response.json();
-        
-        if (data.status === 'success') {
-            displayHotels(data.hotels);
-        } else {
-            alert('Error searching for hotels. Please try again.');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error searching for hotels. Please try again.');
-    }
-});
-
-function displayHotels(hotels) {
-    const hotelList = document.getElementById('hotelList');
-    hotelList.innerHTML = '';
-    
-    if (hotels.length === 0) {
-        hotelList.innerHTML = '<div class="alert alert-info">No hotels found matching your criteria.</div>';
-        return;
-    }
-    
-    hotels.forEach(hotel => {
-        const hotelCard = document.createElement('div');
-        hotelCard.className = 'hotel-card p-4';
-        
-        const amenities = hotel.amenities.map(amenity => {
-            const icons = {
-                pool: 'fa-swimming-pool',
-                breakfast: 'fa-utensils',
-                parking: 'fa-parking',
-                wifi: 'fa-wifi',
-                fitness: 'fa-dumbbell',
-                spa: 'fa-spa',
-                restaurant: 'fa-utensils',
-                bar: 'fa-glass-martini-alt',
-                conference: 'fa-building',
-                shuttle: 'fa-shuttle-van'
-            };
-            
-            return `<span class="badge bg-success me-2">
-                <i class="fas ${icons[amenity]} me-1"></i>${amenity}
-            </span>`;
-        }).join('');
-        
-        hotelCard.innerHTML = `
-            <div class="row">
-                <div class="col-md-4">
-                    <img src="${hotel.image_url}" class="img-fluid rounded" alt="${hotel.name}">
-                </div>
-                <div class="col-md-8">
-                    <h4>${hotel.name}</h4>
-                    <p class="text-muted">
-                        <i class="fas fa-map-marker-alt me-2"></i>${hotel.address}
-                    </p>
-                    <div class="mb-2">
-                        ${Array(hotel.stars).fill('<i class="fas fa-star rating"></i>').join('')}
-                        <span class="ms-2">(${hotel.rating}/10 - ${hotel.reviews} reviews)</span>
-                    </div>
-                    <p>${hotel.description}</p>
-                    <div class="mb-2">
-                        <strong>Available Room Types:</strong> ${hotel.room_types.join(', ')}
-                    </div>
-                    <div class="mb-2">
-                        <strong>Amenities:</strong><br>
-                        ${amenities}
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="price-tag">
-                            $${hotel.price_per_night} per night
-                        </div>
-                        <button class="btn btn-primary" onclick="bookHotel('${hotel.id}')">
-                            <i class="fas fa-book me-2"></i>Book Now
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        hotelList.appendChild(hotelCard);
-    });
-}
-
-async function bookHotel(hotelId) {
-    try {
-        const response = await fetch(`/api/book?hotel_id=${hotelId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(document.getElementById('bookingForm').getFormData())
-        });
-        
-        const data = await response.json();
-        
-        if (data.status === 'success') {
-            alert(`Booking confirmed! Reference: ${data.confirmation.booking_reference}`);
-        } else {
-            alert('Error booking hotel. Please try again.');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error booking hotel. Please try again.');
-    }
-} 
+}); 
