@@ -12,17 +12,17 @@ from datetime import datetime, timedelta
 import random
 import string
 import httpx
-from hotel_booking_system_v2 import UserInterfaceAgent, BookingAPIAgent, IntegrationAgent
+from .hotel_booking_system_v2 import UserInterfaceAgent, BookingAPIAgent, IntegrationAgent
 from dotenv import load_dotenv
-from hotel_providers import HotelDataProvider
-from middleware import (
+from .hotel_providers import HotelDataProvider
+from .middleware import (
     SecurityHeadersMiddleware,
     RequestLoggingMiddleware,
     RateLimitMiddleware,
     SQLInjectionMiddleware,
     XSSMiddleware
 )
-from validators import (
+from .validators import (
     BookingRequest,
     sanitize_search_params,
     validate_api_key,
@@ -516,7 +516,7 @@ async def get_amenities():
 @app.get("/api/room-types")
 async def get_room_types():
     """Get list of available room types"""
-    from hotel_booking_system_v2 import RoomType
+    from .hotel_booking_system_v2 import RoomType
     return {
         "status": "success",
         "room_types": [{"id": rt.name, "name": rt.value} for rt in RoomType]
