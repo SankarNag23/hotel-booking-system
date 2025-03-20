@@ -87,7 +87,7 @@ GOOGLE_HOTELS_PRICES_URL = f"{GOOGLE_HOTELS_BASE_URL}/hotelPrices"
 
 # Mock hotel database with more detailed information
 HOTELS = {
-    "new_york": [
+    "new york": [
         {
             "id": "ny1",
             "name": "Grand Central Hotel",
@@ -191,6 +191,42 @@ HOTELS = {
             "highlights": ["Opera House View", "Infinity Pool", "Fine Dining"],
             "location": "Circular Quay",
             "nearby_attractions": ["Sydney Opera House", "Harbor Bridge", "Royal Botanic Garden"]
+        }
+    ],
+    "dubai": [
+        {
+            "id": "dxb1",
+            "name": "Burj Al Arab Hotel",
+            "address": "Jumeirah Beach Road, Dubai, UAE",
+            "stars": 7,
+            "rating": 4.9,
+            "reviews": 1200,
+            "description": "Iconic luxury hotel shaped like a sail, offering unparalleled luxury and service.",
+            "price_per_night": 1200,
+            "room_types": ["Deluxe", "Suite", "Presidential", "Royal"],
+            "amenities": ["pool", "breakfast", "parking", "wifi", "fitness", "spa", "restaurant", "bar", "conference", "helicopter"],
+            "image_url": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+            "highlights": ["Private Beach", "Helicopter Transfer", "Underwater Restaurant"],
+            "location": "Jumeirah Beach",
+            "nearby_attractions": ["Dubai Mall", "Palm Jumeirah", "Dubai Marina"]
+        }
+    ],
+    "singapore": [
+        {
+            "id": "sgp1",
+            "name": "Marina Bay Sands",
+            "address": "10 Bayfront Avenue, Singapore 018956",
+            "stars": 5,
+            "rating": 4.8,
+            "reviews": 1500,
+            "description": "Luxury integrated resort featuring the world's largest rooftop infinity pool.",
+            "price_per_night": 600,
+            "room_types": ["Deluxe", "Suite", "Presidential"],
+            "amenities": ["pool", "breakfast", "parking", "wifi", "fitness", "spa", "restaurant", "bar", "conference", "casino"],
+            "image_url": "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+            "highlights": ["Infinity Pool", "SkyPark", "ArtScience Museum"],
+            "location": "Marina Bay",
+            "nearby_attractions": ["Gardens by the Bay", "Singapore Flyer", "Merlion Park"]
         }
     ]
 }
@@ -300,13 +336,23 @@ async def search_hotels(request: SearchRequest):
     try:
         logger.info(f"Searching hotels for destination: {request.destination}")
         
+        # Normalize destination for case-insensitive matching
+        destination_key = request.destination.lower().strip()
+        
         # Get hotels from Google Hotels API
         hotels = await get_google_hotels(request.destination, request.check_in, request.check_out)
         
         # If no hotels found from API, use mock data
         if not hotels:
             logger.info("Using mock data for hotel search")
-            hotels = HOTELS.get(request.destination.lower(), [])
+            hotels = HOTELS.get(destination_key, [])
+            
+            # If still no hotels found, try partial matching
+            if not hotels:
+                for key in HOTELS.keys():
+                    if destination_key in key or key in destination_key:
+                        hotels.extend(HOTELS[key])
+                        logger.info(f"Found hotels for partial match: {key}")
         
         # Apply filters if provided
         if request.price_range:
@@ -315,7 +361,13 @@ async def search_hotels(request: SearchRequest):
         if request.amenities:
             hotels = [h for h in hotels if all(a in h["amenities"] for a in request.amenities)]
         
+        # Add more detailed logging
         logger.info(f"Found {len(hotels)} hotels matching criteria")
+        if hotels:
+            logger.info(f"Sample hotel: {hotels[0]['name']} in {hotels[0]['location']}")
+        else:
+            logger.warning("No hotels found matching the criteria")
+        
         return {"hotels": hotels}
     except Exception as e:
         logger.error(f"Error searching hotels: {str(e)}")
