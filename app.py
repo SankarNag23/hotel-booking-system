@@ -7,12 +7,17 @@ from pydantic import BaseModel
 from typing import List, Dict, Optional
 import uvicorn
 import os
+import logging
 from datetime import datetime, timedelta
 import random
 import string
 import httpx
 from hotel_booking_system_v2 import UserInterfaceAgent, BookingAPIAgent, IntegrationAgent
 from dotenv import load_dotenv
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Load environment variables from .env file
 load_dotenv()
@@ -41,24 +46,36 @@ app.add_middleware(
 )
 
 # Get absolute paths for static files and templates
-current_dir = os.path.dirname(os.path.abspath(__file__))
-static_dir = os.path.join(current_dir, "static")
-templates_dir = os.path.join(current_dir, "templates")
+try:
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    static_dir = os.path.join(current_dir, "static")
+    templates_dir = os.path.join(current_dir, "templates")
 
-# Ensure directories exist
-os.makedirs(static_dir, exist_ok=True)
-os.makedirs(templates_dir, exist_ok=True)
+    # Ensure directories exist
+    os.makedirs(static_dir, exist_ok=True)
+    os.makedirs(templates_dir, exist_ok=True)
 
-# Mount static files with absolute path
-app.mount("/static", StaticFiles(directory=static_dir), name="static")
+    # Mount static files with absolute path
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
-# Templates with absolute path
-templates = Jinja2Templates(directory=templates_dir)
+    # Templates with absolute path
+    templates = Jinja2Templates(directory=templates_dir)
+    
+    logger.info(f"Static directory: {static_dir}")
+    logger.info(f"Templates directory: {templates_dir}")
+except Exception as e:
+    logger.error(f"Error setting up directories: {str(e)}")
+    raise
 
 # Initialize agents
-ui_agent = UserInterfaceAgent()
-booking_agent = BookingAPIAgent(api_key=BOOKING_API_KEY)
-integration_agent = IntegrationAgent(api_key=BOOKING_API_KEY)
+try:
+    ui_agent = UserInterfaceAgent()
+    booking_agent = BookingAPIAgent(api_key=BOOKING_API_KEY)
+    integration_agent = IntegrationAgent(api_key=BOOKING_API_KEY)
+    logger.info("Agents initialized successfully")
+except Exception as e:
+    logger.error(f"Error initializing agents: {str(e)}")
+    raise
 
 # Google Hotels API endpoints
 GOOGLE_HOTELS_BASE_URL = "https://hotels.googleapis.com/v1"

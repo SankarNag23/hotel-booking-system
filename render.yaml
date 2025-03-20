@@ -2,7 +2,9 @@ services:
   - type: web
     name: hotel-booking-system
     env: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: |
+      python -m pip install --upgrade pip
+      pip install -r requirements.txt
     startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT --workers 4
     envVars:
       - key: BOOKING_API_KEY
@@ -15,6 +17,8 @@ services:
         value: 8000
       - key: PYTHON_VERSION
         value: 3.9.0
+      - key: PYTHONPATH
+        value: .
     healthCheckPath: /
     autoDeploy: true
     plan: free
