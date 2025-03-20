@@ -21,4 +21,9 @@ services:
         - requirements.txt
         - templates/**
         - static/**
-        - hotel_providers.py 
+        - hotel_providers.py
+        - hotel_booking_system_v2.py
+        - middleware.py
+        - validators.py
+        - .env
+        - README.md 
