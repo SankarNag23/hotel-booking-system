@@ -24,7 +24,15 @@ body {
 }
 
 .hotel-card {
-    margin-bottom: 1.5rem;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    transition: transform 0.3s;
+}
+
+.hotel-card:hover {
+    transform: translateY(-5px);
 }
 
 .hotel-image {
@@ -89,8 +97,8 @@ body {
 
 /* Form styles */
 .form-control:focus {
-    border-color: #80bdff;
-    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25);
 }
 
 .form-label {
@@ -98,22 +106,20 @@ body {
 }
 
 .btn-primary {
-    background-color: #007bff;
-    border-color: #007bff;
+    background-color: #0d6efd;
+    border-color: #0d6efd;
     transition: all 0.2s ease;
     padding: 0.5rem 1.5rem;
 }
 
 .btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
 }
 
 /* Alert styles */
 .alert {
-    border: none;
-    border-radius: 8px;
-    margin-bottom: 1rem;
+    border-radius: 10px;
 }
 
 /* Responsive adjustments */
@@ -124,6 +130,18 @@ body {
     
     .container {
         padding: 1rem;
+    }
+    
+    .booking-form {
+        margin-bottom: 30px;
+    }
+    
+    .hotel-card .row {
+        flex-direction: column;
+    }
+    
+    .hotel-card .col-md-4 {
+        margin-bottom: 20px;
     }
 }
 
@@ -187,4 +205,39 @@ img {
     color: #28a745;
     text-align: center;
     padding: 2rem;
+}
+
+/* Additional custom styles */
+.amenity-icon {
+    margin-right: 5px;
+    color: #28a745;
+}
+
+.price-tag {
+    font-size: 1.2em;
+    color: #28a745;
+    font-weight: bold;
+}
+
+.form-check-input:checked {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.input-group-text {
+    background-color: #f8f9fa;
+    border-color: #ced4da;
+}
+
+.badge {
+    font-size: 0.9em;
+    padding: 0.5em 0.8em;
+}
+
+.booking-form {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    padding: 30px;
+    margin-top: 30px;
 }
