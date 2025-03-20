@@ -1,11 +1,13 @@
 import os
+import json
 import logging
-from typing import List, Dict, Optional
-import googlemaps
+import httpx
+from typing import List, Dict, Any
+import asyncio
+from datetime import datetime, timedelta
 from overpy import Overpass
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut
-from datetime import datetime
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -13,11 +15,62 @@ logger = logging.getLogger(__name__)
 
 class HotelDataProvider:
     def __init__(self):
+        self.use_mock_data = os.getenv("USE_MOCK_DATA", "true").lower() == "true"
+        self.mock_data = {
+            "london": [{
+                "id": "ld001",
+                "name": "Royal Park Hotel",
+                "location": "Hyde Park",
+                "price_per_night": 500,
+                "stars": 4.9,
+                "reviews": 1250,
+                "image_url": "/static/images/hotels/london-royal-park.jpg",
+                "amenities": ["pool", "spa", "wifi", "breakfast"],
+                "highlights": ["Hyde Park View", "Luxury Spa", "Fine Dining"],
+                "nearby": ["Hyde Park", "Buckingham Palace"]
+            }],
+            "new york": [{
+                "id": "ny001",
+                "name": "Grand Central Hotel",
+                "location": "Manhattan",
+                "price_per_night": 450,
+                "stars": 4.8,
+                "reviews": 2100,
+                "image_url": "/static/images/hotels/ny-grand-central.jpg",
+                "amenities": ["gym", "restaurant", "wifi", "bar"],
+                "highlights": ["Central Park View", "Fine Dining"],
+                "nearby": ["Central Park", "Times Square"]
+            },
+            {
+                "id": "ny002",
+                "name": "Broadway Plaza Hotel",
+                "location": "Theater District",
+                "price_per_night": 380,
+                "stars": 4.6,
+                "reviews": 1800,
+                "image_url": "/static/images/hotels/ny-broadway-plaza.jpg",
+                "amenities": ["wifi", "restaurant", "bar"],
+                "highlights": ["Theater District Location", "Rooftop Bar"],
+                "nearby": ["Broadway", "Times Square"]
+            }],
+            "paris": [{
+                "id": "pr001",
+                "name": "Eiffel View Hotel",
+                "location": "7th Arrondissement",
+                "price_per_night": 400,
+                "stars": 4.5,
+                "reviews": 1500,
+                "image_url": "/static/images/hotels/paris-eiffel.jpg",
+                "amenities": ["breakfast", "wifi", "bar"],
+                "highlights": ["Eiffel Tower View", "Rooftop Bar"],
+                "nearby": ["Eiffel Tower", "Musée d'Orsay"]
+            }]
+        }
         self.google_maps = googlemaps.Client(key=os.getenv('GOOGLE_PLACES_API_KEY'))
         self.overpass = Overpass()
         self.geocoder = Nominatim(user_agent="hotel_booking_system")
         
-    async def get_coordinates(self, destination: str) -> Optional[tuple]:
+    async def get_coordinates(self, destination: str) -> Any:
         """Get coordinates for a destination using geopy"""
         try:
             location = self.geocoder.geocode(destination)
@@ -28,128 +81,94 @@ class HotelDataProvider:
             logger.error(f"Geocoding timeout for destination: {destination}")
             return None
 
-    async def get_google_places_hotels(self, destination: str) -> List[Dict]:
-        """Get hotel data from Google Places API"""
+    async def get_google_places_hotels(self, destination: str) -> List[Dict[str, Any]]:
+        """Fetch hotel data from Google Places API with fallback to mock data"""
+        if self.use_mock_data:
+            logger.info("Using mock data as configured")
+            return self.get_mock_hotels(destination)
+
         try:
-            # First, get the location coordinates
-            coords = await self.get_coordinates(destination)
-            if not coords:
-                return []
-
-            # Search for hotels near the location
-            places_result = self.google_maps.places_nearby(
-                location=coords,
-                radius=5000,  # 5km radius
-                type='lodging',
-                language='en'
-            )
-
-            hotels = []
-            for place in places_result.get('results', []):
-                try:
-                    # Get detailed information for each place
-                    details = self.google_maps.place(place['place_id'], fields=[
-                        'name', 'formatted_address', 'rating', 'reviews',
-                        'photos', 'website', 'opening_hours', 'price_level',
-                        'formatted_phone_number', 'international_phone_number',
-                        'opening_hours', 'types', 'user_ratings_total'
-                    ])
-
-                    # Get photos
-                    photo_url = self._get_photo_url(place.get('photos', []))
-                    
-                    # Get amenities from place types
-                    amenities = self._get_amenities_from_types(details.get('types', []))
-                    
-                    # Get price level
-                    price_level = details.get('price_level', 0)
-                    price_per_night = self._estimate_price(price_level)
-                    
-                    # Get rating and reviews
-                    rating = details.get('rating', 0)
-                    reviews = details.get('user_ratings_total', 0)
-                    
-                    # Get opening hours
-                    opening_hours = details.get('opening_hours', {})
-                    is_24_7 = opening_hours.get('open_now', False)
-                    
-                    hotel = {
-                        'id': place['place_id'],
-                        'name': place['name'],
-                        'address': place['vicinity'],
-                        'stars': int(rating),  # Convert rating to stars
-                        'rating': rating,
-                        'reviews': reviews,
-                        'description': f"Hotel located in {place['vicinity']}",
-                        'price_per_night': price_per_night,
-                        'room_types': self._get_room_types(price_level),
-                        'amenities': amenities,
-                        'image_url': photo_url,
-                        'highlights': self._get_highlights(details),
-                        'location': destination,
-                        'nearby_attractions': await self._get_nearby_attractions(coords),
-                        'phone': details.get('formatted_phone_number', ''),
-                        'website': details.get('website', ''),
-                        'is_24_7': is_24_7
-                    }
-                    hotels.append(hotel)
-                    logger.info(f"Added hotel: {hotel['name']} with rating {rating}")
-                    
-                except Exception as e:
-                    logger.error(f"Error processing hotel {place.get('name', 'Unknown')}: {str(e)}")
-                    continue
-
-            return hotels
-        except Exception as e:
-            logger.error(f"Error fetching Google Places data: {str(e)}")
-            return []
-
-    async def get_osm_hotels(self, destination: str) -> List[Dict]:
-        """Get additional hotel data from OpenStreetMap"""
-        try:
-            coords = await self.get_coordinates(destination)
-            if not coords:
-                return []
-
-            # Query OSM for hotels
-            query = f"""
-            [out:json][timeout:25];
-            (
-              node["tourism"="hotel"](around:5000,{coords[0]},{coords[1]});
-              way["tourism"="hotel"](around:5000,{coords[0]},{coords[1]});
-              relation["tourism"="hotel"](around:5000,{coords[0]},{coords[1]});
-            );
-            out body;
-            >;
-            out skel qt;
-            """
+            api_key = os.getenv("GOOGLE_PLACES_API_KEY")
+            client_id = os.getenv("GOOGLE_HOTELS_CLIENT_ID")
             
-            result = self.overpass.query(query)
-            hotels = []
+            if not api_key or not client_id:
+                logger.warning("Missing API credentials, falling back to mock data")
+                return self.get_mock_hotels(destination)
 
-            for node in result.nodes:
-                hotel = {
-                    'id': f"osm_{node.id}",
-                    'name': node.tags.get('name', 'Unnamed Hotel'),
-                    'address': node.tags.get('addr:street', ''),
-                    'stars': 0,  # OSM doesn't provide star ratings
-                    'rating': 0,
-                    'reviews': 0,
-                    'description': f"Hotel located in {node.tags.get('addr:street', '')}",
-                    'price_per_night': self._estimate_price_from_tags(node.tags),
-                    'room_types': ['Standard', 'Deluxe', 'Suite'],
-                    'amenities': self._get_amenities_from_tags(node.tags),
-                    'image_url': node.tags.get('image', ''),
-                    'highlights': self._get_highlights_from_tags(node.tags),
-                    'location': destination,
-                    'nearby_attractions': []
-                }
-                hotels.append(hotel)
+            async with httpx.AsyncClient() as client:
+                # Get hotel content
+                content_response = await client.get(
+                    "https://hotels.googleapis.com/v1/hotelContent",
+                    params={
+                        "key": api_key,
+                        "clientId": client_id,
+                        "location": destination,
+                        "languageCode": "en"
+                    }
+                )
+                
+                # Get hotel prices
+                prices_response = await client.get(
+                    "https://hotels.googleapis.com/v1/hotelPrices",
+                    params={
+                        "key": api_key,
+                        "clientId": client_id,
+                        "location": destination,
+                        "checkIn": (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d"),
+                        "checkOut": (datetime.now() + timedelta(days=35)).strftime("%Y-%m-%d")
+                    }
+                )
 
-            return hotels
+                if content_response.status_code != 200 or prices_response.status_code != 200:
+                    logger.error(f"Failed to fetch hotel data. Content status: {content_response.status_code}, Prices status: {prices_response.status_code}")
+                    return self.get_mock_hotels(destination)
+
+                # Process and combine the responses
+                content_data = content_response.json()
+                prices_data = prices_response.json()
+                
+                # Transform the data to our format
+                return self.transform_google_data(content_data, prices_data)
         except Exception as e:
-            logger.error(f"Error fetching OSM data: {str(e)}")
-            return []
+            logger.error(f"Error fetching hotel data: {str(e)}")
+            return self.get_mock_hotels(destination)
+
+    def get_mock_hotels(self, destination: str) -> List[Dict[str, Any]]:
+        """Get mock hotel data for a destination"""
+        destination_lower = destination.lower()
+        if destination_lower in self.mock_data:
+            logger.info(f"Using mock data for {destination}")
+            return self.mock_data[destination_lower]
+        return []
+
+    def transform_google_data(self, content_data: Dict[str, Any], prices_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Transform Google Hotels API data to our format"""
+        hotels = []
+        try:
+            for hotel in content_data.get("hotels", []):
+                hotel_id = hotel.get("id")
+                price_info = next((p for p in prices_data.get("prices", []) if p.get("hotelId") == hotel_id), {})
+                
+                hotels.append({
+                    "id": hotel_id,
+                    "name": hotel.get("name", ""),
+                    "location": hotel.get("location", {}).get("address", ""),
+                    "price_per_night": price_info.get("price", {}).get("amount", 0),
+                    "stars": hotel.get("rating", {}).get("overall", 0),
+                    "reviews": hotel.get("reviewCount", 0),
+                    "image_url": hotel.get("photos", [{}])[0].get("url", ""),
+                    "amenities": [a.get("name") for a in hotel.get("amenities", [])],
+                    "highlights": [h.get("text") for h in hotel.get("highlights", [])],
+                    "nearby": [p.get("name") for p in hotel.get("nearbyPlaces", [])]
+                })
+        except Exception as e:
+            logger.error(f"Error transforming hotel data: {str(e)}")
+        
+        return hotels
+
+    async def get_osm_hotels(self, destination: str) -> List[Dict[str, Any]]:
+        """This method can be implemented later for OpenStreetMap integration"""
+        return []
 
     def _estimate_price(self, price_level: int) -> float:
         """Estimate price based on Google Places price level"""
