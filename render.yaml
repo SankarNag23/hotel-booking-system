@@ -17,4 +17,11 @@ services:
     disk:
       name: data
       mountPath: /data
-      sizeGB: 1 
+      sizeGB: 1
+    buildFilter:
+      paths:
+        - app.py
+        - requirements.txt
+        - templates/**
+        - static/**
+        - hotel_booking_system_v2.py 
