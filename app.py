@@ -89,26 +89,42 @@ app.add_middleware(
 )
 
 # Get absolute paths for static files and templates
+current_dir = os.path.dirname(os.path.abspath(__file__))
+static_dir = os.path.join(current_dir, "static")
+templates_dir = os.path.join(current_dir, "templates")
+
+# Create directories if they don't exist
+os.makedirs(static_dir, exist_ok=True)
+os.makedirs(templates_dir, exist_ok=True)
+
+# Ensure index.html exists
+index_template = os.path.join(templates_dir, "index.html")
+if not os.path.exists(index_template):
+    with open(index_template, "w") as f:
+        f.write("""
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hotel Booking System</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <h1>Hotel Booking System</h1>
+    <p>System is running. Please use the API endpoints.</p>
+</body>
+</html>
+        """.strip())
+
 try:
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    static_dir = os.path.join(current_dir, "static")
-    templates_dir = os.path.join(current_dir, "templates")
-
-    # Ensure directories exist
-    os.makedirs(static_dir, exist_ok=True)
-    os.makedirs(templates_dir, exist_ok=True)
-
-    # Mount static files with absolute path and security headers
+    # Mount static files
     app.mount("/static", StaticFiles(directory=static_dir, html=True), name="static")
-
-    # Templates with absolute path
+    # Initialize templates
     templates = Jinja2Templates(directory=templates_dir)
-    
-    logger.info(f"Static directory: {static_dir}")
-    logger.info(f"Templates directory: {templates_dir}")
+    logger.info(f"Successfully initialized static files and templates")
 except Exception as e:
-    logger.error(f"Error setting up directories: {str(e)}")
-    raise
+    logger.warning(f"Error mounting static files: {str(e)}")
+    # Continue without static files if there's an error
 
 # Initialize agents with error handling
 try:

@@ -2,13 +2,17 @@ services:
   - type: web
     name: hotel-booking-system
     env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: python3 -m uvicorn app:app --host 0.0.0.0 --port $PORT
+    buildCommand: |
+      python -m pip install --upgrade pip
+      pip install -r requirements.txt
+    startCommand: python -m uvicorn app:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.7
       - key: USE_MOCK_DATA
         value: "true"
+      - key: PYTHONPATH
+        value: .
     healthCheckPath: /health
     autoDeploy: true
     buildFilter:
