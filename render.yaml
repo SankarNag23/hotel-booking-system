@@ -2,28 +2,12 @@ services:
   - type: web
     name: hotel-booking-system
     env: python
-    buildCommand: |
-      python3 -m pip install --upgrade pip
-      python3 -m pip install --no-cache-dir -r requirements.txt
-    startCommand: python3 -m uvicorn app:app --host 0.0.0.0 --port $PORT
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.7
-      - key: PYTHONPATH
-        value: .
-      - key: GOOGLE_PLACES_API_KEY
-        sync: false
-      - key: GOOGLE_HOTELS_CLIENT_ID
-        sync: false
-      - key: API_KEY
-        generateValue: true
-      - key: DEBUG
-        value: false
-      - key: ALLOWED_ORIGINS
-        value: https://${RENDER_EXTERNAL_HOSTNAME}
       - key: USE_MOCK_DATA
-        value: "true"
-      - key: PIP_NO_CACHE_DIR
         value: "true"
     healthCheckPath: /
     autoDeploy: true

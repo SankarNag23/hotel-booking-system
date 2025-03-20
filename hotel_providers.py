@@ -66,7 +66,6 @@ class HotelDataProvider:
                 "nearby": ["Eiffel Tower", "Musée d'Orsay"]
             }]
         }
-        self.google_maps = googlemaps.Client(key=os.getenv('GOOGLE_PLACES_API_KEY'))
         self.overpass = Overpass()
         self.geocoder = Nominatim(user_agent="hotel_booking_system")
         
@@ -83,55 +82,9 @@ class HotelDataProvider:
 
     async def get_google_places_hotels(self, destination: str) -> List[Dict[str, Any]]:
         """Fetch hotel data from Google Places API with fallback to mock data"""
-        if self.use_mock_data:
-            logger.info("Using mock data as configured")
-            return self.get_mock_hotels(destination)
-
-        try:
-            api_key = os.getenv("GOOGLE_PLACES_API_KEY")
-            client_id = os.getenv("GOOGLE_HOTELS_CLIENT_ID")
-            
-            if not api_key or not client_id:
-                logger.warning("Missing API credentials, falling back to mock data")
-                return self.get_mock_hotels(destination)
-
-            async with httpx.AsyncClient() as client:
-                # Get hotel content
-                content_response = await client.get(
-                    "https://hotels.googleapis.com/v1/hotelContent",
-                    params={
-                        "key": api_key,
-                        "clientId": client_id,
-                        "location": destination,
-                        "languageCode": "en"
-                    }
-                )
-                
-                # Get hotel prices
-                prices_response = await client.get(
-                    "https://hotels.googleapis.com/v1/hotelPrices",
-                    params={
-                        "key": api_key,
-                        "clientId": client_id,
-                        "location": destination,
-                        "checkIn": (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d"),
-                        "checkOut": (datetime.now() + timedelta(days=35)).strftime("%Y-%m-%d")
-                    }
-                )
-
-                if content_response.status_code != 200 or prices_response.status_code != 200:
-                    logger.error(f"Failed to fetch hotel data. Content status: {content_response.status_code}, Prices status: {prices_response.status_code}")
-                    return self.get_mock_hotels(destination)
-
-                # Process and combine the responses
-                content_data = content_response.json()
-                prices_data = prices_response.json()
-                
-                # Transform the data to our format
-                return self.transform_google_data(content_data, prices_data)
-        except Exception as e:
-            logger.error(f"Error fetching hotel data: {str(e)}")
-            return self.get_mock_hotels(destination)
+        # Since USE_MOCK_DATA is true, always return mock data
+        logger.info("Using mock data as configured")
+        return self.get_mock_hotels(destination)
 
     def get_mock_hotels(self, destination: str) -> List[Dict[str, Any]]:
         """Get mock hotel data for a destination"""
