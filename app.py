@@ -30,11 +30,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# Mount static files with explicit directory path
+app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static")), name="static")
 
-# Templates
-templates = Jinja2Templates(directory="templates")
+# Templates with explicit directory path
+templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "templates"))
 
 # Initialize agents
 ui_agent = UserInterfaceAgent()
