@@ -10,10 +10,13 @@ import os
 from datetime import datetime, timedelta
 import random
 import string
+import httpx
 from hotel_booking_system_v2 import UserInterfaceAgent, BookingAPIAgent, IntegrationAgent
 
-# Get API key from environment variable
-API_KEY = os.getenv("BOOKING_API_KEY", "test_api_key")
+# Get API keys from environment variables
+BOOKING_API_KEY = os.getenv("BOOKING_API_KEY", "test_api_key")
+GOOGLE_HOTELS_API_KEY = os.getenv("GOOGLE_HOTELS_API_KEY")
+GOOGLE_HOTELS_CLIENT_ID = os.getenv("GOOGLE_HOTELS_CLIENT_ID")
 
 app = FastAPI(
     title="Hotel Booking System API",
@@ -42,8 +45,13 @@ templates = Jinja2Templates(directory=templates_dir)
 
 # Initialize agents
 ui_agent = UserInterfaceAgent()
-booking_agent = BookingAPIAgent(api_key=API_KEY)
-integration_agent = IntegrationAgent(api_key=API_KEY)
+booking_agent = BookingAPIAgent(api_key=BOOKING_API_KEY)
+integration_agent = IntegrationAgent(api_key=BOOKING_API_KEY)
+
+# Google Hotels API endpoints
+GOOGLE_HOTELS_BASE_URL = "https://hotels.googleapis.com/v1"
+GOOGLE_HOTELS_CONTENT_URL = f"{GOOGLE_HOTELS_BASE_URL}/hotelContent"
+GOOGLE_HOTELS_PRICES_URL = f"{GOOGLE_HOTELS_BASE_URL}/hotelPrices"
 
 # Mock hotel database
 HOTELS = {
@@ -149,6 +157,66 @@ class BookingResponse(BaseModel):
     status: str
     hotels: List[Dict]
 
+async def get_google_hotels(location: str, check_in: str, check_out: str):
+    """Fetch hotel data from Google Hotels API"""
+    try:
+        async with httpx.AsyncClient() as client:
+            # Get hotel content
+            content_response = await client.get(
+                f"{GOOGLE_HOTELS_CONTENT_URL}",
+                params={
+                    "key": GOOGLE_HOTELS_API_KEY,
+                    "location": location,
+                    "languageCode": "en"
+                }
+            )
+            
+            # Get hotel prices
+            prices_response = await client.get(
+                f"{GOOGLE_HOTELS_PRICES_URL}",
+                params={
+                    "key": GOOGLE_HOTELS_API_KEY,
+                    "location": location,
+                    "checkIn": check_in,
+                    "checkOut": check_out
+                }
+            )
+            
+            if content_response.status_code == 200 and prices_response.status_code == 200:
+                content_data = content_response.json()
+                prices_data = prices_response.json()
+                
+                # Combine and format the data
+                hotels = []
+                for hotel in content_data.get("hotels", []):
+                    hotel_id = hotel.get("id")
+                    price_info = next(
+                        (p for p in prices_data.get("prices", []) if p.get("hotelId") == hotel_id),
+                        {}
+                    )
+                    
+                    hotels.append({
+                        "id": hotel_id,
+                        "name": hotel.get("name"),
+                        "address": hotel.get("address"),
+                        "stars": hotel.get("starRating", 0),
+                        "rating": hotel.get("rating", 0),
+                        "reviews": hotel.get("reviewCount", 0),
+                        "description": hotel.get("description", ""),
+                        "price_per_night": price_info.get("price", {}).get("amount", 0),
+                        "room_types": hotel.get("roomTypes", []),
+                        "amenities": hotel.get("amenities", []),
+                        "image_url": hotel.get("images", [{}])[0].get("url", "")
+                    })
+                
+                return hotels
+            else:
+                return []
+                
+    except Exception as e:
+        print(f"Error fetching from Google Hotels API: {str(e)}")
+        return []
+
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     try:
@@ -169,36 +237,36 @@ async def read_root(request: Request):
 @app.post("/api/search", response_model=BookingResponse)
 async def search_hotels(booking_request: BookingRequest):
     try:
-        # Convert destination to lowercase for matching
-        destination = booking_request.destination.lower()
+        # Try to get hotels from Google Hotels API first
+        hotels = await get_google_hotels(
+            booking_request.destination,
+            booking_request.check_in,
+            booking_request.check_out
+        )
         
-        # Get hotels for the destination
-        available_hotels = HOTELS.get(destination, [])
-        
-        # Filter hotels based on preferences
-        filtered_hotels = []
-        for hotel in available_hotels:
-            # Check price range
-            if not (booking_request.preferences["price_range"]["min"] <= hotel["price_per_night"] <= booking_request.preferences["price_range"]["max"]):
-                continue
-                
-            # Check minimum stars
-            if hotel["stars"] < booking_request.preferences["min_stars"]:
-                continue
-                
-            # Check room type
-            if booking_request.preferences["room_type"] not in hotel["room_types"]:
-                continue
-                
-            # Check amenities
-            if not all(amenity in hotel["amenities"] for amenity in booking_request.preferences["amenities"]):
-                continue
-                
-            filtered_hotels.append(hotel)
+        # If no hotels found from Google API, fall back to mock data
+        if not hotels:
+            destination = booking_request.destination.lower()
+            available_hotels = HOTELS.get(destination, [])
+            
+            # Filter hotels based on preferences
+            filtered_hotels = []
+            for hotel in available_hotels:
+                if not (booking_request.preferences["price_range"]["min"] <= hotel["price_per_night"] <= booking_request.preferences["price_range"]["max"]):
+                    continue
+                if hotel["stars"] < booking_request.preferences["min_stars"]:
+                    continue
+                if booking_request.preferences["room_type"] not in hotel["room_types"]:
+                    continue
+                if not all(amenity in hotel["amenities"] for amenity in booking_request.preferences["amenities"]):
+                    continue
+                filtered_hotels.append(hotel)
+            
+            hotels = filtered_hotels
         
         return BookingResponse(
             status="success",
-            hotels=filtered_hotels
+            hotels=hotels
         )
         
     except Exception as e:
