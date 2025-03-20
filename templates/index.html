@@ -44,156 +44,298 @@
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="#">
-                <i class="fas fa-hotel me-2"></i>{{ title }}
-            </a>
-        </div>
-    </nav>
-
-    <div class="container mt-4">
-        <div class="row">
-            <div class="col-md-4">
-                <div class="booking-form">
-                    <h3 class="mb-4">Search Hotels</h3>
-                    <form id="bookingForm">
-                        <div class="mb-3">
-                            <label class="form-label">Destination</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
-                                <input type="text" class="form-control" id="destination" required>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Check-in Date</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-calendar-check"></i></span>
-                                <input type="date" class="form-control" id="checkIn" required>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Check-out Date</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-calendar-times"></i></span>
-                                <input type="date" class="form-control" id="checkOut" required>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Guests</label>
-                            <div class="row">
-                                <div class="col">
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                        <input type="number" class="form-control" id="adults" min="1" max="10" value="1" required>
-                                    </div>
-                                </div>
-                                <div class="col">
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-baby"></i></span>
-                                        <input type="number" class="form-control" id="children" min="0" max="10" value="0">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Price Range (per night)</label>
-                            <div class="row">
-                                <div class="col">
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
-                                        <input type="number" class="form-control" id="minPrice" min="0" value="100" required>
-                                    </div>
-                                </div>
-                                <div class="col">
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
-                                        <input type="number" class="form-control" id="maxPrice" min="0" value="500" required>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Minimum Star Rating</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-star"></i></span>
-                                <select class="form-select" id="minStars">
-                                    <option value="1">1 Star</option>
-                                    <option value="2">2 Stars</option>
-                                    <option value="3">3 Stars</option>
-                                    <option value="4" selected>4 Stars</option>
-                                    <option value="5">5 Stars</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Room Type</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-bed"></i></span>
-                                <select class="form-select" id="roomType">
-                                    <option value="Standard">Standard</option>
-                                    <option value="Deluxe">Deluxe</option>
-                                    <option value="Suite">Suite</option>
-                                    <option value="Presidential">Presidential</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Amenities</label>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="pool" id="pool">
-                                <label class="form-check-label" for="pool">
-                                    <i class="fas fa-swimming-pool amenity-icon"></i>Swimming Pool
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="breakfast" id="breakfast">
-                                <label class="form-check-label" for="breakfast">
-                                    <i class="fas fa-utensils amenity-icon"></i>Free Breakfast
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="parking" id="parking">
-                                <label class="form-check-label" for="parking">
-                                    <i class="fas fa-parking amenity-icon"></i>Free Parking
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="wifi" id="wifi">
-                                <label class="form-check-label" for="wifi">
-                                    <i class="fas fa-wifi amenity-icon"></i>Free WiFi
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="fitness" id="fitness">
-                                <label class="form-check-label" for="fitness">
-                                    <i class="fas fa-dumbbell amenity-icon"></i>Fitness Center
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="fas fa-search me-2"></i>Search Hotels
-                        </button>
-                    </form>
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <nav class="navbar navbar-expand-lg navbar-dark">
+            <div class="container">
+                <a class="navbar-brand" href="#">
+                    <i class="fas fa-hotel me-2"></i>{{ title }}
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#features">Features</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#destinations">Destinations</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#booking">Book Now</a>
+                        </li>
+                    </ul>
                 </div>
             </div>
-            
-            <div class="col-md-8">
-                <div id="results">
-                    <h3 class="mb-4">Available Hotels</h3>
-                    <div id="hotelList"></div>
+        </nav>
+        <div class="hero-content">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h1>Find Your Perfect Stay</h1>
+                        <p class="lead">Discover luxury hotels, cozy resorts, and unique accommodations worldwide.</p>
+                        <a href="#booking" class="btn btn-primary btn-lg">Start Your Journey</a>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="booking-form">
+                            <h3 class="mb-4">Search Hotels</h3>
+                            <form id="bookingForm">
+                                <div class="mb-3">
+                                    <label class="form-label">Destination</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                                        <input type="text" class="form-control" id="destination" required placeholder="Where do you want to go?">
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Check-in</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-calendar-check"></i></span>
+                                                <input type="date" class="form-control" id="checkIn" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Check-out</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-calendar-times"></i></span>
+                                                <input type="date" class="form-control" id="checkOut" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Adults</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                                <input type="number" class="form-control" id="adults" min="1" max="10" value="1" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Children</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-baby"></i></span>
+                                                <input type="number" class="form-control" id="children" min="0" max="10" value="0">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-search me-2"></i>Search Hotels
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Features Section -->
+    <section id="features" class="py-5">
+        <div class="container">
+            <h2 class="text-center mb-5">Why Choose Us</h2>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <i class="fas fa-hand-holding-usd"></i>
+                        <h3>Best Price Guarantee</h3>
+                        <p>Find the best rates for your stay with our price match guarantee.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <i class="fas fa-clock"></i>
+                        <h3>24/7 Support</h3>
+                        <p>Our dedicated team is always here to help you with your booking needs.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <i class="fas fa-shield-alt"></i>
+                        <h3>Secure Booking</h3>
+                        <p>Your booking is secure with our encrypted payment system.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Popular Destinations -->
+    <section id="destinations" class="py-5 bg-light">
+        <div class="container">
+            <h2 class="text-center mb-5">Popular Destinations</h2>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="destination-card">
+                        <img src="https://source.unsplash.com/800x600/?paris" alt="Paris">
+                        <div class="destination-content">
+                            <h3>Paris</h3>
+                            <p>The City of Light</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="destination-card">
+                        <img src="https://source.unsplash.com/800x600/?newyork" alt="New York">
+                        <div class="destination-content">
+                            <h3>New York</h3>
+                            <p>The Big Apple</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="destination-card">
+                        <img src="https://source.unsplash.com/800x600/?tokyo" alt="Tokyo">
+                        <div class="destination-content">
+                            <h3>Tokyo</h3>
+                            <p>Land of the Rising Sun</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Search Results Section -->
+    <section id="searchResults" class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="filters-card">
+                        <h3 class="mb-4">Filters</h3>
+                        <form id="filterForm">
+                            <div class="mb-3">
+                                <label class="form-label">Price Range (per night)</label>
+                                <div class="row">
+                                    <div class="col">
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
+                                            <input type="number" class="form-control" id="minPrice" min="0" value="100" required>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
+                                            <input type="number" class="form-control" id="maxPrice" min="0" value="500" required>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Minimum Star Rating</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-star"></i></span>
+                                    <select class="form-select" id="minStars">
+                                        <option value="1">1 Star</option>
+                                        <option value="2">2 Stars</option>
+                                        <option value="3">3 Stars</option>
+                                        <option value="4" selected>4 Stars</option>
+                                        <option value="5">5 Stars</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Room Type</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-bed"></i></span>
+                                    <select class="form-select" id="roomType">
+                                        <option value="Standard">Standard</option>
+                                        <option value="Deluxe">Deluxe</option>
+                                        <option value="Suite">Suite</option>
+                                        <option value="Presidential">Presidential</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Amenities</label>
+                                <div class="amenities-grid">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="pool" id="pool">
+                                        <label class="form-check-label" for="pool">
+                                            <i class="fas fa-swimming-pool"></i>Pool
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="breakfast" id="breakfast">
+                                        <label class="form-check-label" for="breakfast">
+                                            <i class="fas fa-utensils"></i>Breakfast
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="parking" id="parking">
+                                        <label class="form-check-label" for="parking">
+                                            <i class="fas fa-parking"></i>Parking
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="wifi" id="wifi">
+                                        <label class="form-check-label" for="wifi">
+                                            <i class="fas fa-wifi"></i>WiFi
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="fitness" id="fitness">
+                                        <label class="form-check-label" for="fitness">
+                                            <i class="fas fa-dumbbell"></i>Fitness
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="col-md-8">
+                    <div id="results">
+                        <h3 class="mb-4">Available Hotels</h3>
+                        <div id="hotelList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>About Us</h5>
+                    <p>Your trusted partner in finding the perfect accommodation for your next adventure.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#destinations">Destinations</a></li>
+                        <li><a href="#booking">Book Now</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Contact Us</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-phone"></i> +1 234 567 890</li>
+                        <li><i class="fas fa-envelope"></i> info@hotelbooking.com</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>

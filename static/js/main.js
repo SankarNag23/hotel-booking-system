@@ -70,6 +70,21 @@ document.addEventListener('DOMContentLoaded', function() {
             setLoading(false);
         }
     });
+
+    // Handle filter form changes
+    document.getElementById('filterForm').addEventListener('change', function() {
+        document.getElementById('bookingForm').dispatchEvent(new Event('submit'));
+    });
+
+    // Navbar scroll effect
+    window.addEventListener('scroll', function() {
+        const navbar = document.querySelector('.navbar');
+        if (window.scrollY > 50) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
 });
 
 function displayHotels(hotels) {
@@ -88,31 +103,37 @@ function displayHotels(hotels) {
 
     hotels.forEach(hotel => {
         const card = document.createElement('div');
-        card.className = 'hotel-card p-3 mb-4';
+        card.className = 'hotel-card';
         card.innerHTML = `
             <div class="row">
                 <div class="col-md-4">
-                    <img src="${hotel.image_url}" class="img-fluid rounded" alt="${hotel.name}">
+                    <img src="${hotel.image_url}" class="img-fluid" alt="${hotel.name}">
                 </div>
                 <div class="col-md-8">
-                    <h4>${hotel.name}</h4>
-                    <p class="text-muted">${hotel.address}</p>
-                    <div class="mb-2">
-                        ${'⭐'.repeat(hotel.stars)} ${hotel.rating} (${hotel.reviews} reviews)
-                    </div>
-                    <p>${hotel.description}</p>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="price-tag">$${hotel.price_per_night} per night</div>
-                        <button class="btn btn-primary" onclick="bookHotel('${hotel.id}')">
-                            <i class="fas fa-book me-2"></i>Book Now
-                        </button>
-                    </div>
-                    <div class="mt-2">
-                        ${hotel.amenities.map(amenity => `
-                            <span class="badge bg-light text-dark me-1">
-                                <i class="fas fa-${getAmenityIcon(amenity)} me-1"></i>${amenity}
-                            </span>
-                        `).join('')}
+                    <div class="card-body">
+                        <h4>${hotel.name}</h4>
+                        <p class="text-muted">
+                            <i class="fas fa-map-marker-alt me-2"></i>${hotel.address}
+                        </p>
+                        <div class="rating mb-2">
+                            ${'⭐'.repeat(hotel.stars)} ${hotel.rating} (${hotel.reviews} reviews)
+                        </div>
+                        <p>${hotel.description}</p>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="price-tag">
+                                <i class="fas fa-dollar-sign me-1"></i>${hotel.price_per_night} per night
+                            </div>
+                            <button class="btn btn-primary" onclick="bookHotel('${hotel.id}')">
+                                <i class="fas fa-book me-2"></i>Book Now
+                            </button>
+                        </div>
+                        <div class="amenities">
+                            ${hotel.amenities.map(amenity => `
+                                <span class="amenity-badge">
+                                    <i class="fas fa-${getAmenityIcon(amenity)}"></i>${amenity}
+                                </span>
+                            `).join('')}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -164,7 +185,8 @@ async function bookHotel(hotelId) {
         });
 
         if (!response.ok) {
-            throw new Error('Booking failed');
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Booking failed');
         }
 
         const data = await response.json();
@@ -180,6 +202,12 @@ function validateForm() {
     const checkOut = document.getElementById('checkOut').value;
     const minPrice = document.getElementById('minPrice').value;
     const maxPrice = document.getElementById('maxPrice').value;
+    const destination = document.getElementById('destination').value;
+    
+    if (!destination) {
+        alert('Please enter a destination');
+        return false;
+    }
     
     if (!checkIn || !checkOut) {
         alert('Please select both check-in and check-out dates');
@@ -198,37 +226,6 @@ function validateForm() {
     
     return true;
 }
-
-// Date picker initialization
-document.addEventListener('DOMContentLoaded', function() {
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    // Set minimum dates for check-in and check-out
-    document.getElementById('checkIn').min = today.toISOString().split('T')[0];
-    document.getElementById('checkOut').min = tomorrow.toISOString().split('T')[0];
-    
-    // Update check-out minimum date when check-in changes
-    document.getElementById('checkIn').addEventListener('change', function() {
-        const checkInDate = new Date(this.value);
-        const nextDay = new Date(checkInDate);
-        nextDay.setDate(nextDay.getDate() + 1);
-        document.getElementById('checkOut').min = nextDay.toISOString().split('T')[0];
-    });
-});
-
-// Form data collection
-HTMLFormElement.prototype.getFormData = function() {
-    const formData = new FormData(this);
-    const data = {};
-    
-    for (let [key, value] of formData.entries()) {
-        data[key] = value;
-    }
-    
-    return data;
-};
 
 // Loading state management
 function setLoading(isLoading) {
@@ -252,7 +249,7 @@ function handleError(error) {
     hotelList.innerHTML = `
         <div class="alert alert-danger">
             <i class="fas fa-exclamation-circle me-2"></i>
-            An error occurred while searching for hotels. Please try again.
+            ${error.message || 'An error occurred while processing your request. Please try again.'}
         </div>
     `;
 }
