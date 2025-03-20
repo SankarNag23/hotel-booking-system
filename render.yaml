@@ -4,8 +4,10 @@ services:
     env: python
     plan: free
     buildCommand: |
-      pip install --upgrade pip
+      python -m pip install --upgrade pip
       pip install -r requirements.txt
+      mkdir -p templates static
+      echo '<!DOCTYPE html><html><head><title>Hotel Booking System</title></head><body><h1>Hotel Booking System</h1><p>Version 2.1</p></body></html>' > templates/index.html
     startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
@@ -16,8 +18,6 @@ services:
         value: .
       - key: PYTHONUNBUFFERED
         value: "true"
-      - key: PORT
-        value: "10000"
     healthCheckPath: /health
     autoDeploy: true
     buildFilter:
