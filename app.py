@@ -12,11 +12,18 @@ import random
 import string
 import httpx
 from hotel_booking_system_v2 import UserInterfaceAgent, BookingAPIAgent, IntegrationAgent
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Get API keys from environment variables
-BOOKING_API_KEY = os.getenv("BOOKING_API_KEY", "test_api_key")
+BOOKING_API_KEY = os.getenv("BOOKING_API_KEY", "test_api_key_123456789")
 GOOGLE_HOTELS_API_KEY = os.getenv("GOOGLE_HOTELS_API_KEY")
 GOOGLE_HOTELS_CLIENT_ID = os.getenv("GOOGLE_HOTELS_CLIENT_ID")
+
+# Check if Google Hotels API credentials are available
+GOOGLE_HOTELS_AVAILABLE = bool(GOOGLE_HOTELS_API_KEY and GOOGLE_HOTELS_CLIENT_ID)
 
 app = FastAPI(
     title="Hotel Booking System API",
@@ -172,6 +179,10 @@ class SearchRequest(BaseModel):
 
 async def get_google_hotels(destination: str, check_in: str, check_out: str) -> List[dict]:
     """Fetch hotel data from Google Hotels API"""
+    if not GOOGLE_HOTELS_AVAILABLE:
+        print("Google Hotels API credentials not available. Using mock data.")
+        return []
+        
     try:
         async with httpx.AsyncClient() as client:
             # Get hotel content
@@ -179,6 +190,7 @@ async def get_google_hotels(destination: str, check_in: str, check_out: str) -> 
                 f"{GOOGLE_HOTELS_CONTENT_URL}",
                 params={
                     "key": GOOGLE_HOTELS_API_KEY,
+                    "clientId": GOOGLE_HOTELS_CLIENT_ID,
                     "location": destination,
                     "languageCode": "en"
                 }
@@ -189,6 +201,7 @@ async def get_google_hotels(destination: str, check_in: str, check_out: str) -> 
                 f"{GOOGLE_HOTELS_PRICES_URL}",
                 params={
                     "key": GOOGLE_HOTELS_API_KEY,
+                    "clientId": GOOGLE_HOTELS_CLIENT_ID,
                     "location": destination,
                     "checkIn": check_in,
                     "checkOut": check_out
@@ -224,6 +237,7 @@ async def get_google_hotels(destination: str, check_in: str, check_out: str) -> 
                 
                 return hotels
             else:
+                print(f"Error from Google Hotels API: {content_response.status_code}, {prices_response.status_code}")
                 return []
                 
     except Exception as e:

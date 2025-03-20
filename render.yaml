@@ -6,11 +6,11 @@ services:
     startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT --workers 4
     envVars:
       - key: BOOKING_API_KEY
-        sync: false
+        value: test_api_key_123456789
       - key: GOOGLE_HOTELS_API_KEY
-        sync: false
+        value: AIzaSyDxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxX
       - key: GOOGLE_HOTELS_CLIENT_ID
-        sync: false
+        value: 123456789-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com
       - key: PORT
         value: 8000
       - key: PYTHON_VERSION
@@ -29,6 +29,7 @@ services:
         - templates/**
         - static/**
         - hotel_booking_system_v2.py
+        - .env
     headers:
       - path: /*
         name: Cache-Control
