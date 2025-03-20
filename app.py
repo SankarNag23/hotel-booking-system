@@ -15,8 +15,11 @@ import httpx
 from hotel_booking_system_v2 import UserInterfaceAgent, BookingAPIAgent, IntegrationAgent
 from dotenv import load_dotenv
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# Configure logging with more detailed format
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 # Load environment variables from .env file
@@ -32,14 +35,14 @@ GOOGLE_HOTELS_AVAILABLE = bool(GOOGLE_HOTELS_API_KEY and GOOGLE_HOTELS_CLIENT_ID
 
 app = FastAPI(
     title="Hotel Booking System API",
-    description="API for the Automated Hotel Booking System V2",
-    version="2.0.0"
+    description="API for the Automated Hotel Booking System V2.1",
+    version="2.1.0"
 )
 
-# Configure CORS
+# Configure CORS with specific origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # In production, replace with specific origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -67,7 +70,7 @@ except Exception as e:
     logger.error(f"Error setting up directories: {str(e)}")
     raise
 
-# Initialize agents
+# Initialize agents with error handling
 try:
     ui_agent = UserInterfaceAgent()
     booking_agent = BookingAPIAgent(api_key=BOOKING_API_KEY)
@@ -82,7 +85,7 @@ GOOGLE_HOTELS_BASE_URL = "https://hotels.googleapis.com/v1"
 GOOGLE_HOTELS_CONTENT_URL = f"{GOOGLE_HOTELS_BASE_URL}/hotelContent"
 GOOGLE_HOTELS_PRICES_URL = f"{GOOGLE_HOTELS_BASE_URL}/hotelPrices"
 
-# Mock hotel database
+# Mock hotel database with more detailed information
 HOTELS = {
     "new_york": [
         {
@@ -96,7 +99,10 @@ HOTELS = {
             "price_per_night": 450,
             "room_types": ["Standard", "Deluxe", "Suite", "Presidential"],
             "amenities": ["pool", "breakfast", "parking", "wifi", "fitness", "spa", "restaurant", "bar"],
-            "image_url": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+            "image_url": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+            "highlights": ["Central Park View", "Luxury Spa", "Fine Dining"],
+            "location": "Manhattan",
+            "nearby_attractions": ["Central Park", "Times Square", "Fifth Avenue"]
         },
         {
             "id": "ny2",
@@ -109,7 +115,10 @@ HOTELS = {
             "price_per_night": 350,
             "room_types": ["Standard", "Deluxe", "Suite"],
             "amenities": ["breakfast", "wifi", "fitness", "restaurant"],
-            "image_url": "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+            "image_url": "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+            "highlights": ["Times Square Location", "Business Center", "24/7 Gym"],
+            "location": "Times Square",
+            "nearby_attractions": ["Times Square", "Broadway", "Empire State Building"]
         }
     ],
     "london": [
@@ -124,7 +133,10 @@ HOTELS = {
             "price_per_night": 500,
             "room_types": ["Standard", "Deluxe", "Suite", "Presidential"],
             "amenities": ["pool", "breakfast", "parking", "wifi", "fitness", "spa", "restaurant", "bar", "conference"],
-            "image_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+            "image_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+            "highlights": ["Hyde Park View", "Traditional Afternoon Tea", "Luxury Spa"],
+            "location": "Hyde Park",
+            "nearby_attractions": ["Hyde Park", "Buckingham Palace", "Harrods"]
         }
     ],
     "paris": [
@@ -139,7 +151,10 @@ HOTELS = {
             "price_per_night": 400,
             "room_types": ["Standard", "Deluxe", "Suite"],
             "amenities": ["breakfast", "wifi", "fitness", "restaurant", "bar"],
-            "image_url": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+            "image_url": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+            "highlights": ["Eiffel Tower View", "French Cuisine", "Rooftop Bar"],
+            "location": "7th Arrondissement",
+            "nearby_attractions": ["Eiffel Tower", "Champ de Mars", "Musée d'Orsay"]
         }
     ],
     "tokyo": [
@@ -154,7 +169,10 @@ HOTELS = {
             "price_per_night": 550,
             "room_types": ["Standard", "Deluxe", "Suite", "Presidential"],
             "amenities": ["pool", "breakfast", "parking", "wifi", "fitness", "spa", "restaurant", "bar", "conference"],
-            "image_url": "https://images.unsplash.com/photo-1542051841857-5f90071e7989?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+            "image_url": "https://images.unsplash.com/photo-1542051841857-5f90071e7989?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+            "highlights": ["Traditional Onsen", "Michelin Restaurant", "Zen Garden"],
+            "location": "Marunouchi",
+            "nearby_attractions": ["Imperial Palace", "Ginza", "Tsukiji Market"]
         }
     ],
     "sydney": [
@@ -169,7 +187,10 @@ HOTELS = {
             "price_per_night": 480,
             "room_types": ["Standard", "Deluxe", "Suite", "Presidential"],
             "amenities": ["pool", "breakfast", "parking", "wifi", "fitness", "spa", "restaurant", "bar", "conference"],
-            "image_url": "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+            "image_url": "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+            "highlights": ["Opera House View", "Infinity Pool", "Fine Dining"],
+            "location": "Circular Quay",
+            "nearby_attractions": ["Sydney Opera House", "Harbor Bridge", "Royal Botanic Garden"]
         }
     ]
 }
@@ -195,9 +216,9 @@ class SearchRequest(BaseModel):
     amenities: Optional[List[str]] = None
 
 async def get_google_hotels(destination: str, check_in: str, check_out: str) -> List[dict]:
-    """Fetch hotel data from Google Hotels API"""
+    """Fetch hotel data from Google Hotels API with improved error handling"""
     if not GOOGLE_HOTELS_AVAILABLE:
-        print("Google Hotels API credentials not available. Using mock data.")
+        logger.warning("Google Hotels API credentials not available. Using mock data.")
         return []
         
     try:
@@ -249,99 +270,92 @@ async def get_google_hotels(destination: str, check_in: str, check_out: str) -> 
                         "price_per_night": price_info.get("price", {}).get("amount", 0),
                         "room_types": hotel.get("roomTypes", []),
                         "amenities": hotel.get("amenities", []),
-                        "image_url": hotel.get("images", [{}])[0].get("url", "")
+                        "image_url": hotel.get("images", [{}])[0].get("url", ""),
+                        "highlights": hotel.get("highlights", []),
+                        "location": hotel.get("location", {}).get("address", ""),
+                        "nearby_attractions": hotel.get("nearbyAttractions", [])
                     })
                 
+                logger.info(f"Successfully fetched {len(hotels)} hotels from Google Hotels API")
                 return hotels
             else:
-                print(f"Error from Google Hotels API: {content_response.status_code}, {prices_response.status_code}")
+                logger.error(f"Failed to fetch hotel data. Content status: {content_response.status_code}, Prices status: {prices_response.status_code}")
                 return []
-                
     except Exception as e:
-        print(f"Error fetching from Google Hotels API: {str(e)}")
+        logger.error(f"Error fetching hotel data from Google Hotels API: {str(e)}")
         return []
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
+    """Render the main page with improved error handling"""
     try:
-        return templates.TemplateResponse(
-            "index.html",
-            {
-                "request": request,
-                "title": "Hotel Booking System",
-                "version": "2.0.0"
-            }
-        )
+        return templates.TemplateResponse("index.html", {"request": request})
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error loading template: {str(e)}"
-        )
+        logger.error(f"Error rendering index.html: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
-@app.post("/api/search", response_model=BookingResponse)
+@app.post("/api/search")
 async def search_hotels(request: SearchRequest):
+    """Search for hotels with improved error handling and logging"""
     try:
-        # Try to get hotels from Google Hotels API first
-        hotels = await get_google_hotels(
-            request.destination,
-            request.check_in,
-            request.check_out
-        )
+        logger.info(f"Searching hotels for destination: {request.destination}")
         
-        # If no hotels found from Google API, use mock data
+        # Get hotels from Google Hotels API
+        hotels = await get_google_hotels(request.destination, request.check_in, request.check_out)
+        
+        # If no hotels found from API, use mock data
         if not hotels:
-            destination = request.destination.lower()
-            available_hotels = HOTELS.get(destination, [])
-            
-            # Filter hotels based on preferences
-            filtered_hotels = []
-            for hotel in available_hotels:
-                if not (request.price_range and request.price_range >= hotel["price_per_night"]):
-                    continue
-                if hotel["stars"] < request.guests:
-                    continue
-                if request.amenities and not all(amenity in hotel["amenities"] for amenity in request.amenities):
-                    continue
-                filtered_hotels.append(hotel)
-            
-            hotels = filtered_hotels
+            logger.info("Using mock data for hotel search")
+            hotels = HOTELS.get(request.destination.lower(), [])
         
-        return BookingResponse(
-            status="success",
-            hotels=hotels
-        )
+        # Apply filters if provided
+        if request.price_range:
+            hotels = [h for h in hotels if h["price_per_night"] <= request.price_range]
         
+        if request.amenities:
+            hotels = [h for h in hotels if all(a in h["amenities"] for a in request.amenities)]
+        
+        logger.info(f"Found {len(hotels)} hotels matching criteria")
+        return {"hotels": hotels}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error searching hotels: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to search hotels")
 
 @app.post("/api/book")
-async def book_hotel(hotel_id: str, booking_request: BookingRequest):
+async def book_hotel(request: BookingRequest):
+    """Book a hotel with improved error handling and validation"""
     try:
-        # Generate a random booking reference
-        booking_reference = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+        # Validate dates
+        check_in = datetime.strptime(request.check_in, "%Y-%m-%d").date()
+        check_out = datetime.strptime(request.check_out, "%Y-%m-%d").date()
         
-        # In a real application, you would:
-        # 1. Check hotel availability
-        # 2. Process payment
-        # 3. Create booking record in database
-        # 4. Send confirmation email
+        if check_in >= check_out:
+            raise HTTPException(status_code=400, detail="Check-out date must be after check-in date")
         
-        return {
-            "status": "success",
-            "confirmation": {
-                "booking_reference": booking_reference,
-                "hotel_id": hotel_id,
-                "check_in": booking_request.check_in,
-                "check_out": booking_request.check_out,
-                "guests": {
-                    "adults": booking_request.adults,
-                    "children": booking_request.children
-                }
-            }
+        # Generate booking reference
+        booking_ref = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+        
+        # In a real implementation, this would create a booking in a database
+        booking = {
+            "reference": booking_ref,
+            "hotel": request.destination,
+            "check_in": request.check_in,
+            "check_out": request.check_out,
+            "adults": request.adults,
+            "children": request.children,
+            "preferences": request.preferences,
+            "status": "confirmed",
+            "created_at": datetime.now().isoformat()
         }
         
+        logger.info(f"Booking created with reference: {booking_ref}")
+        return {"status": "success", "booking": booking}
+    except ValueError as e:
+        logger.error(f"Invalid date format: {str(e)}")
+        raise HTTPException(status_code=400, detail="Invalid date format")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error creating booking: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to create booking")
 
 @app.get("/api/amenities")
 async def get_amenities():
@@ -361,4 +375,4 @@ async def get_room_types():
     }
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True) 
+    uvicorn.run(app, host="0.0.0.0", port=8000) 

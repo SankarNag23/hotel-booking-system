@@ -1,4 +1,4 @@
-# Automated Hotel Booking System V2
+# Automated Hotel Booking System V2.1
 
 import os
 import json
@@ -7,6 +7,12 @@ import time
 from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 from enum import Enum
+import logging
+import random
+import string
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 class RoomType(Enum):
     STANDARD = "Standard"
@@ -39,7 +45,7 @@ class UserInterfaceAgent:
     def display_welcome_message(self):
         """Display a colorful welcome message to the user."""
         print("\n" + "="*60)
-        print("🏨 Welcome to the Advanced Automated Hotel Booking System V2! 🏨")
+        print("🏨 Welcome to the Advanced Automated Hotel Booking System V2.1! 🏨")
         print("="*60 + "\n")
         print("🌟 Features:")
         print("  • Smart hotel recommendations")
@@ -47,20 +53,30 @@ class UserInterfaceAgent:
         print("  • Price comparison across multiple hotels")
         print("  • Special offers and discounts")
         print("  • Detailed hotel information and reviews")
+        print("  • Enhanced search filters")
+        print("  • Improved user interface")
         print("="*60 + "\n")
     
     def collect_destination(self) -> str:
-        """Collect destination information from the user."""
+        """Collect destination information from the user with validation."""
         while True:
-            destination = input("📍 Enter your destination (city, country): ").strip()
-            if len(destination) < 2:
-                print("❌ Destination name is too short. Please try again.")
-                continue
-            self.booking_details["destination"] = destination
-            return destination
+            try:
+                destination = input("📍 Enter your destination (city, country): ").strip()
+                if len(destination) < 2:
+                    print("❌ Destination name is too short. Please try again.")
+                    continue
+                if not destination.replace(" ", "").isalpha():
+                    print("❌ Destination name should only contain letters and spaces. Please try again.")
+                    continue
+                self.booking_details["destination"] = destination
+                logger.info(f"Destination selected: {destination}")
+                return destination
+            except Exception as e:
+                logger.error(f"Error collecting destination: {str(e)}")
+                print("❌ An error occurred. Please try again.")
     
     def collect_dates(self) -> tuple:
-        """Collect check-in and check-out dates from the user."""
+        """Collect check-in and check-out dates from the user with validation."""
         while True:
             try:
                 check_in_str = input("📅 Enter check-in date (YYYY-MM-DD): ")
@@ -86,12 +102,16 @@ class UserInterfaceAgent:
                 
                 self.booking_details["check_in"] = check_in_str
                 self.booking_details["check_out"] = check_out_str
+                logger.info(f"Dates selected: Check-in {check_in_str}, Check-out {check_out_str}")
                 return check_in_str, check_out_str
             except ValueError:
                 print("❌ Invalid date format. Please use YYYY-MM-DD format.")
+            except Exception as e:
+                logger.error(f"Error collecting dates: {str(e)}")
+                print("❌ An error occurred. Please try again.")
     
     def collect_guests_info(self) -> Dict[str, int]:
-        """Collect information about the number of adults and children."""
+        """Collect information about the number of adults and children with validation."""
         while True:
             try:
                 adults = int(input("👨‍👩‍👧‍👦 Number of adults: "))
@@ -125,12 +145,16 @@ class UserInterfaceAgent:
                 if children > 0:
                     self.booking_details["children_ages"] = children_ages
                 
+                logger.info(f"Guest information collected: {adults} adults, {children} children")
                 return {"adults": adults, "children": children}
             except ValueError:
                 print("❌ Please enter valid numbers.")
+            except Exception as e:
+                logger.error(f"Error collecting guest information: {str(e)}")
+                print("❌ An error occurred. Please try again.")
     
     def collect_preferences(self) -> Dict[str, Any]:
-        """Collect user preferences for the hotel."""
+        """Collect user preferences for the hotel with validation."""
         preferences = {}
         
         print("\n🌟 Hotel Preferences:")
@@ -156,6 +180,9 @@ class UserInterfaceAgent:
                 break
             except ValueError:
                 print("❌ Please enter valid numbers.")
+            except Exception as e:
+                logger.error(f"Error collecting price preferences: {str(e)}")
+                print("❌ An error occurred. Please try again.")
         
         # Star rating
         while True:
@@ -170,6 +197,9 @@ class UserInterfaceAgent:
                 break
             except ValueError:
                 print("❌ Please enter a valid number.")
+            except Exception as e:
+                logger.error(f"Error collecting star rating preference: {str(e)}")
+                print("❌ An error occurred. Please try again.")
         
         # Room type preference
         print("\n🛏️ Select preferred room type:")
@@ -185,46 +215,66 @@ class UserInterfaceAgent:
                 print("❌ Invalid choice. Please try again.")
             except ValueError:
                 print("❌ Please enter a valid number.")
+            except Exception as e:
+                logger.error(f"Error collecting room type preference: {str(e)}")
+                print("❌ An error occurred. Please try again.")
         
         # Amenities
         print("\n🛎️ Select desired amenities (enter 'y' for yes, 'n' for no):")
         amenities = []
         
         for amenity_id, amenity in self.amenities.items():
-            if input(f"{amenity.icon} {amenity.name}? (y/n): ").lower() == 'y':
-                amenities.append(amenity_id)
+            while True:
+                try:
+                    choice = input(f"{amenity.icon} {amenity.name}? (y/n): ").lower()
+                    if choice in ['y', 'n']:
+                        if choice == 'y':
+                            amenities.append(amenity_id)
+                        break
+                    print("❌ Please enter 'y' for yes or 'n' for no.")
+                except Exception as e:
+                    logger.error(f"Error collecting amenity preference: {str(e)}")
+                    print("❌ An error occurred. Please try again.")
         
         preferences["amenities"] = amenities
         self.booking_details["preferences"] = preferences
         
+        logger.info("Hotel preferences collected successfully")
         return preferences
     
     def collect_all_details(self) -> Dict[str, Any]:
-        """Collect all booking details from the user."""
-        self.display_welcome_message()
-        self.collect_destination()
-        self.collect_dates()
-        self.collect_guests_info()
-        self.collect_preferences()
-        
-        print("\n✅ All booking details collected successfully!")
-        print("\n📋 Booking Summary:")
-        print(f"Destination: {self.booking_details['destination']}")
-        print(f"Check-in: {self.booking_details['check_in']}")
-        print(f"Check-out: {self.booking_details['check_out']}")
-        print(f"Guests: {self.booking_details['adults']} adults, {self.booking_details['children']} children")
-        print(f"Room Type: {self.booking_details['preferences']['room_type']}")
-        print(f"Price Range: ${self.booking_details['preferences']['price_range']['min']} - ${self.booking_details['preferences']['price_range']['max']} per night")
-        print(f"Minimum Stars: {self.booking_details['preferences']['min_stars']}")
-        print(f"Selected Amenities: {', '.join(self.booking_details['preferences']['amenities'])}")
-        
-        return self.booking_details
+        """Collect all booking details from the user with improved error handling."""
+        try:
+            self.display_welcome_message()
+            self.collect_destination()
+            self.collect_dates()
+            self.collect_guests_info()
+            self.collect_preferences()
+            
+            print("\n✅ All booking details collected successfully!")
+            print("\n📋 Booking Summary:")
+            print(f"Destination: {self.booking_details['destination']}")
+            print(f"Check-in: {self.booking_details['check_in']}")
+            print(f"Check-out: {self.booking_details['check_out']}")
+            print(f"Guests: {self.booking_details['adults']} adults, {self.booking_details['children']} children")
+            print(f"Room Type: {self.booking_details['preferences']['room_type']}")
+            print(f"Price Range: ${self.booking_details['preferences']['price_range']['min']} - ${self.booking_details['preferences']['price_range']['max']} per night")
+            print(f"Minimum Stars: {self.booking_details['preferences']['min_stars']}")
+            print(f"Selected Amenities: {', '.join(self.booking_details['preferences']['amenities'])}")
+            
+            logger.info("All booking details collected successfully")
+            return self.booking_details
+        except Exception as e:
+            logger.error(f"Error collecting booking details: {str(e)}")
+            print("❌ An error occurred while collecting booking details. Please try again.")
+            return None
 
 class BookingAPIAgent:
     def __init__(self, api_key: str = None):
         self.api_key = api_key or os.environ.get("BOOKING_API_KEY")
         if not self.api_key:
             raise ValueError("Booking.com API key is required. Set it in the environment variable BOOKING_API_KEY or pass it to the constructor.")
+        logger.info("BookingAPIAgent initialized successfully")
     
     def search_hotels(self, booking_details: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
@@ -233,205 +283,123 @@ class BookingAPIAgent:
         In a real implementation, this would make API calls to Booking.com.
         For this example, we'll simulate the API response.
         """
-        print(f"\n🔍 Searching for hotels in {booking_details['destination']}...")
-        print(f"📅 Check-in: {booking_details['check_in']}, Check-out: {booking_details['check_out']}")
-        print(f"👨‍👩‍👧‍👦 Guests: {booking_details['adults']} adults, {booking_details['children']} children")
-        
-        # Simulate API call delay
-        time.sleep(2)
-        
-        # Simulate API response with more detailed hotel information
-        hotels = [
-            {
-                "id": "hotel1",
-                "name": "Grand Hotel",
-                "stars": 5,
-                "price_per_night": 250.0,
-                "total_price": 250.0 * (datetime.datetime.strptime(booking_details['check_out'], "%Y-%m-%d").date() - 
-                                       datetime.datetime.strptime(booking_details['check_in'], "%Y-%m-%d").date()).days,
-                "amenities": ["pool", "breakfast", "parking", "wifi", "fitness", "spa", "restaurant", "bar", "conference"],
-                "rating": 9.2,
-                "reviews": 1250,
-                "address": "123 Main St, Downtown",
-                "image_url": "https://example.com/grand_hotel.jpg",
-                "room_types": ["Standard", "Deluxe", "Suite"],
-                "description": "Luxury hotel in the heart of downtown with world-class amenities.",
-                "cancellation_policy": "Free cancellation up to 24 hours before check-in",
-                "check_in_time": "15:00",
-                "check_out_time": "12:00"
-            },
-            {
-                "id": "hotel2",
-                "name": "Budget Inn",
-                "stars": 3,
-                "price_per_night": 120.0,
-                "total_price": 120.0 * (datetime.datetime.strptime(booking_details['check_out'], "%Y-%m-%d").date() - 
-                                       datetime.datetime.strptime(booking_details['check_in'], "%Y-%m-%d").date()).days,
-                "amenities": ["wifi", "parking", "breakfast"],
-                "rating": 7.8,
-                "reviews": 850,
-                "address": "456 Side St, Uptown",
-                "image_url": "https://example.com/budget_inn.jpg",
-                "room_types": ["Standard"],
-                "description": "Comfortable and affordable accommodation with essential amenities.",
-                "cancellation_policy": "Free cancellation up to 48 hours before check-in",
-                "check_in_time": "14:00",
-                "check_out_time": "11:00"
-            },
-            {
-                "id": "hotel3",
-                "name": "Luxury Resort & Spa",
-                "stars": 5,
-                "price_per_night": 350.0,
-                "total_price": 350.0 * (datetime.datetime.strptime(booking_details['check_out'], "%Y-%m-%d").date() - 
-                                       datetime.datetime.strptime(booking_details['check_in'], "%Y-%m-%d").date()).days,
-                "amenities": ["pool", "breakfast", "parking", "wifi", "fitness", "spa", "restaurant", "bar", "shuttle"],
-                "rating": 9.7,
-                "reviews": 2100,
-                "address": "789 Beach Rd, Seaside",
-                "image_url": "https://example.com/luxury_resort.jpg",
-                "room_types": ["Deluxe", "Suite", "Presidential"],
-                "description": "Exclusive beachfront resort with premium amenities and services.",
-                "cancellation_policy": "Free cancellation up to 72 hours before check-in",
-                "check_in_time": "16:00",
-                "check_out_time": "12:00"
-            }
-        ]
-        
-        # Filter hotels based on preferences
-        filtered_hotels = []
-        preferences = booking_details.get("preferences", {})
-        
-        for hotel in hotels:
-            # Filter by price range
-            if preferences.get("price_range"):
-                if hotel["price_per_night"] < preferences["price_range"]["min"] or \
-                   hotel["price_per_night"] > preferences["price_range"]["max"]:
+        try:
+            logger.info(f"Searching hotels in {booking_details['destination']}")
+            logger.info(f"Check-in: {booking_details['check_in']}, Check-out: {booking_details['check_out']}")
+            logger.info(f"Guests: {booking_details['adults']} adults, {booking_details['children']} children")
+            
+            # Simulate API call delay
+            time.sleep(2)
+            
+            # Simulate API response with more detailed hotel information
+            hotels = [
+                {
+                    "id": "hotel1",
+                    "name": "Grand Hotel",
+                    "stars": 5,
+                    "price_per_night": 250.0,
+                    "total_price": 250.0 * (datetime.datetime.strptime(booking_details['check_out'], "%Y-%m-%d").date() - 
+                                          datetime.datetime.strptime(booking_details['check_in'], "%Y-%m-%d").date()).days,
+                    "rating": 4.8,
+                    "reviews": 1200,
+                    "amenities": ["pool", "breakfast", "wifi", "fitness", "spa"],
+                    "room_types": ["Standard", "Deluxe", "Suite"],
+                    "description": "Luxury hotel in the heart of the city",
+                    "location": "City Center",
+                    "highlights": ["City View", "Luxury Spa", "Fine Dining"],
+                    "nearby_attractions": ["Shopping Mall", "Museum", "Park"],
+                    "image_url": "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+                },
+                {
+                    "id": "hotel2",
+                    "name": "Beach Resort",
+                    "stars": 4,
+                    "price_per_night": 180.0,
+                    "total_price": 180.0 * (datetime.datetime.strptime(booking_details['check_out'], "%Y-%m-%d").date() - 
+                                          datetime.datetime.strptime(booking_details['check_in'], "%Y-%m-%d").date()).days,
+                    "rating": 4.5,
+                    "reviews": 800,
+                    "amenities": ["pool", "breakfast", "wifi", "fitness", "restaurant"],
+                    "room_types": ["Standard", "Deluxe"],
+                    "description": "Beachfront resort with stunning ocean views",
+                    "location": "Beachfront",
+                    "highlights": ["Ocean View", "Beach Access", "Water Sports"],
+                    "nearby_attractions": ["Beach", "Water Park", "Shopping Center"],
+                    "image_url": "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"
+                }
+            ]
+            
+            # Filter hotels based on preferences
+            filtered_hotels = []
+            for hotel in hotels:
+                if hotel["stars"] < booking_details["preferences"]["min_stars"]:
                     continue
-            
-            # Filter by star rating
-            if preferences.get("min_stars") and hotel["stars"] < preferences["min_stars"]:
-                continue
-            
-            # Filter by room type
-            if preferences.get("room_type") and preferences["room_type"] not in hotel["room_types"]:
-                continue
-            
-            # Filter by amenities
-            if preferences.get("amenities"):
-                if not all(amenity in hotel["amenities"] for amenity in preferences["amenities"]):
+                if hotel["price_per_night"] < booking_details["preferences"]["price_range"]["min"] or \
+                   hotel["price_per_night"] > booking_details["preferences"]["price_range"]["max"]:
                     continue
+                if not all(amenity in hotel["amenities"] for amenity in booking_details["preferences"]["amenities"]):
+                    continue
+                if booking_details["preferences"]["room_type"] not in hotel["room_types"]:
+                    continue
+                filtered_hotels.append(hotel)
             
-            filtered_hotels.append(hotel)
-        
-        print(f"\n✅ Found {len(filtered_hotels)} hotels matching your criteria.")
-        return filtered_hotels
-    
-    def book_hotel(self, hotel_id: str, booking_details: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Book a hotel based on the selected hotel ID and booking details.
-        
-        In a real implementation, this would make API calls to Booking.com.
-        For this example, we'll simulate the API response.
-        """
-        print(f"\n🏨 Booking hotel with ID: {hotel_id}...")
-        
-        # Simulate API call delay
-        time.sleep(2)
-        
-        # Generate a random booking reference
-        booking_ref = f"BK{int(time.time())}{hotel_id[-4:]}"
-        
-        # Simulate successful booking
-        booking_confirmation = {
-            "booking_reference": booking_ref,
-            "hotel_id": hotel_id,
-            "status": "confirmed",
-            "check_in": booking_details["check_in"],
-            "check_out": booking_details["check_out"],
-            "guests": {
-                "adults": booking_details["adults"],
-                "children": booking_details["children"]
-            },
-            "total_price": 0.0,  # This would be calculated based on the selected hotel
-            "payment_status": "pending",
-            "created_at": datetime.datetime.now().isoformat()
-        }
-        
-        print(f"\n✅ Booking confirmed! Reference: {booking_ref}")
-        return booking_confirmation
+            logger.info(f"Found {len(filtered_hotels)} hotels matching criteria")
+            return filtered_hotels
+        except Exception as e:
+            logger.error(f"Error searching hotels: {str(e)}")
+            return []
 
 class IntegrationAgent:
     def __init__(self, api_key: str = None):
-        self.ui_agent = UserInterfaceAgent()
-        self.booking_agent = BookingAPIAgent(api_key)
+        self.api_key = api_key or os.environ.get("BOOKING_API_KEY")
+        if not self.api_key:
+            raise ValueError("Booking.com API key is required. Set it in the environment variable BOOKING_API_KEY or pass it to the constructor.")
+        logger.info("IntegrationAgent initialized successfully")
     
-    def display_hotel_options(self, hotels: List[Dict[str, Any]]):
-        """Display hotel options in a formatted way."""
-        print("\n🏨 Available Hotels:")
-        print("="*80)
+    def process_booking(self, hotel_id: str, booking_details: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Process a hotel booking with improved error handling and validation.
         
-        for i, hotel in enumerate(hotels, 1):
-            print(f"\n{i}. {hotel['name']} ({hotel['stars']}⭐)")
-            print(f"   📍 {hotel['address']}")
-            print(f"   💰 ${hotel['price_per_night']} per night")
-            print(f"   ⭐ Rating: {hotel['rating']}/10 ({hotel['reviews']} reviews)")
-            print(f"   🛏️ Room Types: {', '.join(hotel['room_types'])}")
-            print(f"   🛎️ Amenities: {', '.join(hotel['amenities'])}")
-            print(f"   📝 {hotel['description']}")
-            print(f"   ⏰ Check-in: {hotel['check_in_time']}, Check-out: {hotel['check_out_time']}")
-            print(f"   🔄 {hotel['cancellation_policy']}")
-            print("-"*80)
-    
-    def select_hotel(self, hotels: List[Dict[str, Any]]) -> Optional[str]:
-        """Let the user select a hotel from the available options."""
-        while True:
-            try:
-                choice = int(input("\nEnter the number of your preferred hotel (or 0 to exit): "))
-                if choice == 0:
-                    return None
-                if 1 <= choice <= len(hotels):
-                    return hotels[choice - 1]["id"]
-                print("❌ Invalid choice. Please try again.")
-            except ValueError:
-                print("❌ Please enter a valid number.")
-    
-    def run(self):
-        """Main execution flow of the booking system."""
+        In a real implementation, this would:
+        1. Check hotel availability
+        2. Process payment
+        3. Create booking record in database
+        4. Send confirmation email
+        """
         try:
-            # Collect booking details
-            booking_details = self.ui_agent.collect_all_details()
+            # Validate booking details
+            if not hotel_id:
+                raise ValueError("Hotel ID is required")
             
-            # Search for hotels
-            hotels = self.booking_agent.search_hotels(booking_details)
+            if not booking_details.get("check_in") or not booking_details.get("check_out"):
+                raise ValueError("Check-in and check-out dates are required")
             
-            if not hotels:
-                print("\n❌ No hotels found matching your criteria. Please try different preferences.")
-                return
+            # Generate booking reference
+            booking_ref = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
             
-            # Display hotel options
-            self.display_hotel_options(hotels)
+            # Create booking record
+            booking = {
+                "reference": booking_ref,
+                "hotel_id": hotel_id,
+                "check_in": booking_details["check_in"],
+                "check_out": booking_details["check_out"],
+                "guests": {
+                    "adults": booking_details["adults"],
+                    "children": booking_details.get("children", 0)
+                },
+                "preferences": booking_details.get("preferences", {}),
+                "status": "confirmed",
+                "created_at": datetime.datetime.now().isoformat()
+            }
             
-            # Select hotel
-            selected_hotel_id = self.select_hotel(hotels)
-            if not selected_hotel_id:
-                print("\n👋 Thank you for using our booking system!")
-                return
-            
-            # Book the selected hotel
-            booking_confirmation = self.booking_agent.book_hotel(selected_hotel_id, booking_details)
-            
-            print("\n🎉 Booking completed successfully!")
-            print("="*60)
-            print(f"Booking Reference: {booking_confirmation['booking_reference']}")
-            print(f"Check-in: {booking_confirmation['check_in']}")
-            print(f"Check-out: {booking_confirmation['check_out']}")
-            print(f"Guests: {booking_confirmation['guests']['adults']} adults, {booking_confirmation['guests']['children']} children")
-            print("="*60)
-            
+            logger.info(f"Booking processed successfully with reference: {booking_ref}")
+            return booking
+        except ValueError as e:
+            logger.error(f"Validation error in booking process: {str(e)}")
+            raise
         except Exception as e:
-            print(f"\n❌ An error occurred: {str(e)}")
-            print("Please try again or contact support if the problem persists.")
+            logger.error(f"Error processing booking: {str(e)}")
+            raise
 
 if __name__ == "__main__":
     # Initialize and run the booking system
