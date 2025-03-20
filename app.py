@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, Depends, Security
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -14,6 +14,32 @@ import string
 import httpx
 from hotel_booking_system_v2 import UserInterfaceAgent, BookingAPIAgent, IntegrationAgent
 from dotenv import load_dotenv
+from hotel_providers import HotelDataProvider
+from middleware import (
+    SecurityHeadersMiddleware,
+    RequestLoggingMiddleware,
+    RateLimitMiddleware,
+    SQLInjectionMiddleware,
+    XSSMiddleware
+)
+from validators import (
+    BookingRequest,
+    sanitize_search_params,
+    validate_api_key,
+    validate_hotel_id,
+    sanitize_log_data
+)
+from fastapi.security import APIKeyHeader
+from fastapi.security.api_key import APIKey
+from starlette.status import HTTP_403_FORBIDDEN
+import secrets
+import re
+import json
+from fastapi.middleware import Middleware
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 
 # Configure logging with more detailed format
 logging.basicConfig(
@@ -25,10 +51,14 @@ logger = logging.getLogger(__name__)
 # Load environment variables from .env file
 load_dotenv()
 
-# Get API keys from environment variables
-BOOKING_API_KEY = os.getenv("BOOKING_API_KEY", "test_api_key_123456789")
+# Get API keys from environment variables with validation
+BOOKING_API_KEY = os.getenv("BOOKING_API_KEY")
 GOOGLE_HOTELS_API_KEY = os.getenv("GOOGLE_HOTELS_API_KEY")
 GOOGLE_HOTELS_CLIENT_ID = os.getenv("GOOGLE_HOTELS_CLIENT_ID")
+
+if not validate_api_key(BOOKING_API_KEY):
+    logger.error("Invalid or missing BOOKING_API_KEY")
+    raise ValueError("Invalid or missing BOOKING_API_KEY")
 
 # Check if Google Hotels API credentials are available
 GOOGLE_HOTELS_AVAILABLE = bool(GOOGLE_HOTELS_API_KEY and GOOGLE_HOTELS_CLIENT_ID)
@@ -36,16 +66,26 @@ GOOGLE_HOTELS_AVAILABLE = bool(GOOGLE_HOTELS_API_KEY and GOOGLE_HOTELS_CLIENT_ID
 app = FastAPI(
     title="Hotel Booking System API",
     description="API for the Automated Hotel Booking System V2.1",
-    version="2.1.0"
+    version="2.1.0",
+    docs_url="/api/docs",  # Restrict Swagger UI access
+    redoc_url="/api/redoc"  # Restrict ReDoc access
 )
+
+# Add security middlewares
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(RequestLoggingMiddleware)
+app.add_middleware(RateLimitMiddleware, max_requests=100, window_seconds=60)
+app.add_middleware(SQLInjectionMiddleware)
+app.add_middleware(XSSMiddleware)
 
 # Configure CORS with specific origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with specific origins
+    allow_origins=[os.getenv("ALLOWED_ORIGINS", "http://localhost:8000")],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
+    max_age=600
 )
 
 # Get absolute paths for static files and templates
@@ -58,8 +98,8 @@ try:
     os.makedirs(static_dir, exist_ok=True)
     os.makedirs(templates_dir, exist_ok=True)
 
-    # Mount static files with absolute path
-    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+    # Mount static files with absolute path and security headers
+    app.mount("/static", StaticFiles(directory=static_dir, html=True), name="static")
 
     # Templates with absolute path
     templates = Jinja2Templates(directory=templates_dir)
@@ -231,13 +271,22 @@ HOTELS = {
     ]
 }
 
+# Initialize hotel data provider
+hotel_provider = HotelDataProvider()
+
 class BookingRequest(BaseModel):
-    destination: str
+    hotel_id: str
     check_in: str
     check_out: str
+    guests: int
+    room_type: str
+    name: str
+    email: str
+    phone: str
+    destination: str
     adults: int
-    children: int
-    preferences: Dict
+    children: int = 0
+    preferences: Dict[str, bool] = {}
 
 class BookingResponse(BaseModel):
     status: str
@@ -250,6 +299,38 @@ class SearchRequest(BaseModel):
     guests: int
     price_range: Optional[float] = None
     amenities: Optional[List[str]] = None
+
+# Security configurations
+API_KEY_NAME = "X-API-Key"
+api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
+
+# Generate a secure API key if not provided
+if not os.getenv("API_KEY"):
+    os.environ["API_KEY"] = secrets.token_urlsafe(32)
+API_KEY = os.getenv("API_KEY")
+
+async def get_api_key(api_key_header: str = Security(api_key_header)):
+    if not api_key_header:
+        raise HTTPException(
+            status_code=HTTP_403_FORBIDDEN, detail="Could not validate API key"
+        )
+    if api_key_header != API_KEY:
+        raise HTTPException(
+            status_code=HTTP_403_FORBIDDEN, detail="Invalid API key"
+        )
+    return api_key_header
+
+# Rate limiting
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_middleware(SlowAPIMiddleware)
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    return JSONResponse(
+        status_code=429,
+        content={"detail": "Too many requests, please try again later."}
+    )
 
 async def get_google_hotels(destination: str, check_in: str, check_out: str) -> List[dict]:
     """Fetch hotel data from Google Hotels API with improved error handling"""
@@ -331,42 +412,36 @@ async def read_root(request: Request):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.post("/api/search")
-async def search_hotels(request: SearchRequest):
-    """Search for hotels with improved error handling and logging"""
+@limiter.limit("30/minute")
+async def search_hotels(request: Request, search_params: Dict):
+    """Search for hotels with improved security and validation"""
     try:
-        logger.info(f"Searching hotels for destination: {request.destination}")
+        # Sanitize and validate search parameters
+        sanitized_params = sanitize_search_params(search_params)
         
-        # Normalize destination for case-insensitive matching
-        destination_key = request.destination.lower().strip()
+        # Get hotels from Google Places API
+        google_hotels = await hotel_provider.get_google_places_hotels(sanitized_params["destination"])
         
-        # Get hotels from Google Hotels API
-        hotels = await get_google_hotels(request.destination, request.check_in, request.check_out)
+        # Get additional hotels from OpenStreetMap
+        osm_hotels = await hotel_provider.get_osm_hotels(sanitized_params["destination"])
         
-        # If no hotels found from API, use mock data
-        if not hotels:
-            logger.info("Using mock data for hotel search")
-            hotels = HOTELS.get(destination_key, [])
-            
-            # If still no hotels found, try partial matching
-            if not hotels:
-                for key in HOTELS.keys():
-                    if destination_key in key or key in destination_key:
-                        hotels.extend(HOTELS[key])
-                        logger.info(f"Found hotels for partial match: {key}")
+        # Combine and deduplicate hotels
+        all_hotels = google_hotels + osm_hotels
+        unique_hotels = {hotel['id']: hotel for hotel in all_hotels}.values()
         
         # Apply filters if provided
-        if request.price_range:
-            hotels = [h for h in hotels if h["price_per_night"] <= request.price_range]
+        hotels = list(unique_hotels)
+        if sanitized_params.get("price_range"):
+            hotels = [h for h in hotels if h["price_per_night"] <= sanitized_params["price_range"]]
         
-        if request.amenities:
-            hotels = [h for h in hotels if all(a in h["amenities"] for a in request.amenities)]
+        if sanitized_params.get("amenities"):
+            hotels = [h for h in hotels if all(a in h["amenities"] for a in sanitized_params["amenities"])]
         
-        # Add more detailed logging
+        # Log sanitized results
         logger.info(f"Found {len(hotels)} hotels matching criteria")
         if hotels:
-            logger.info(f"Sample hotel: {hotels[0]['name']} in {hotels[0]['location']}")
-        else:
-            logger.warning("No hotels found matching the criteria")
+            safe_hotel = sanitize_log_data(hotels[0])
+            logger.info(f"Sample hotel: {safe_hotel['name']} in {safe_hotel['location']}")
         
         return {"hotels": hotels}
     except Exception as e:
@@ -374,40 +449,45 @@ async def search_hotels(request: SearchRequest):
         raise HTTPException(status_code=500, detail="Failed to search hotels")
 
 @app.post("/api/book")
+@limiter.limit("5/minute")
 async def book_hotel(request: BookingRequest):
-    """Book a hotel with improved error handling and validation"""
+    """Book a hotel with enhanced security and validation"""
     try:
-        # Validate dates
-        check_in = datetime.strptime(request.check_in, "%Y-%m-%d").date()
-        check_out = datetime.strptime(request.check_out, "%Y-%m-%d").date()
+        # Validate hotel ID
+        if not validate_hotel_id(request.hotel_id):
+            raise HTTPException(status_code=400, detail="Invalid hotel ID")
         
-        if check_in >= check_out:
-            raise HTTPException(status_code=400, detail="Check-out date must be after check-in date")
-        
-        # Generate booking reference
+        # Generate secure booking reference
         booking_ref = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
         
-        # In a real implementation, this would create a booking in a database
-        booking = {
-            "reference": booking_ref,
-            "hotel": request.destination,
-            "check_in": request.check_in,
-            "check_out": request.check_out,
-            "adults": request.adults,
-            "children": request.children,
-            "preferences": request.preferences,
-            "status": "confirmed",
-            "created_at": datetime.now().isoformat()
-        }
+        # Log sanitized booking data
+        safe_data = sanitize_log_data(request.dict())
+        logger.info(f"Processing booking: {safe_data}")
         
-        logger.info(f"Booking created with reference: {booking_ref}")
-        return {"status": "success", "booking": booking}
+        return {
+            "status": "success",
+            "booking": {
+                "reference": booking_ref,
+                "hotel_id": request.hotel_id,
+                "check_in": request.check_in,
+                "check_out": request.check_out,
+                "guests": request.guests,
+                "room_type": request.room_type,
+                "name": request.name,
+                "email": request.email,
+                "phone": request.phone,
+                "destination": request.destination,
+                "adults": request.adults,
+                "children": request.children,
+                "preferences": request.preferences
+            }
+        }
     except ValueError as e:
-        logger.error(f"Invalid date format: {str(e)}")
-        raise HTTPException(status_code=400, detail="Invalid date format")
+        logger.error(f"Validation error: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        logger.error(f"Error creating booking: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to create booking")
+        logger.error(f"Error processing booking: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to process booking")
 
 @app.get("/api/amenities")
 async def get_amenities():
@@ -427,4 +507,10 @@ async def get_room_types():
     }
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=int(os.getenv("PORT", "8000")),
+        ssl_keyfile=os.getenv("SSL_KEYFILE"),
+        ssl_certfile=os.getenv("SSL_CERTFILE")
+    ) 

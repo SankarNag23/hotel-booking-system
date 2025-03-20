@@ -1,10 +1,14 @@
+# Environment variables
+.env
+.env.*
+.key
+
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-env/
 build/
 develop-eggs/
 dist/
@@ -24,16 +28,44 @@ wheels/
 # Virtual Environment
 venv/
 ENV/
+env/
+.venv/
 
 # IDE
 .idea/
 .vscode/
 *.swp
 *.swo
-
-# Environment variables
-.env
-.env.local
+*~
 
 # Logs
-*.log 
+*.log
+logs/
+log/
+
+# Test coverage
+.coverage
+htmlcov/
+.tox/
+.nox/
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# SSL certificates
+*.pem
+*.key
+*.crt
+*.cer
+*.der
+*.priv
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*.pid
+.DS_Store 

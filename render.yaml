@@ -2,30 +2,25 @@ services:
   - type: web
     name: hotel-booking-system
     env: python
-    buildCommand: |
-      python -m pip install --upgrade pip
-      pip install --no-cache-dir -r requirements.txt
-    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT --workers 4
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
     envVars:
-      - key: BOOKING_API_KEY
-        value: test_api_key_123456789
-      - key: GOOGLE_HOTELS_API_KEY
-        value: AIzaSyDxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxX
-      - key: GOOGLE_HOTELS_CLIENT_ID
-        value: 123456789-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com
-      - key: PORT
-        value: 8000
       - key: PYTHON_VERSION
-        value: 3.9.0
-      - key: PYTHONPATH
-        value: .
-      - key: PIP_NO_CACHE_DIR
-        value: "1"
+        value: 3.9.7
+      - key: GOOGLE_PLACES_API_KEY
+        sync: false
+      - key: GOOGLE_HOTELS_CLIENT_ID
+        sync: false
+      - key: API_KEY
+        generateValue: true
+      - key: DEBUG
+        value: false
+      - key: ALLOWED_ORIGINS
+        value: https://${RENDER_EXTERNAL_HOSTNAME}
     healthCheckPath: /
     autoDeploy: true
-    plan: free
     disk:
-      name: data
+      name: hotel-booking-data
       mountPath: /data
       sizeGB: 1
     buildFilter:
@@ -35,6 +30,7 @@ services:
         - templates/**
         - static/**
         - hotel_booking_system_v2.py
+        - hotel_providers.py
         - .env
     headers:
       - path: /*
