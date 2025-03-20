@@ -1,17 +1,24 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize flatpickr for date inputs
-    flatpickr("#checkIn", {
-        minDate: "today",
+    // Initialize date pickers
+    const checkInPicker = flatpickr("#checkIn", {
         dateFormat: "Y-m-d",
-        onChange: function(selectedDates, dateStr, instance) {
-            // Set minimum date for check-out to be check-in date
-            checkOutPicker.set('minDate', dateStr);
+        minDate: "today",
+        onChange: function(selectedDates, dateStr) {
+            checkOutPicker.set("minDate", dateStr);
+            if (checkOutPicker.selectedDates[0] && checkOutPicker.selectedDates[0] < selectedDates[0]) {
+                checkOutPicker.setDate(selectedDates[0]);
+            }
         }
     });
 
-    flatpickr("#checkOut", {
+    const checkOutPicker = flatpickr("#checkOut", {
+        dateFormat: "Y-m-d",
         minDate: "today",
-        dateFormat: "Y-m-d"
+        onChange: function(selectedDates, dateStr) {
+            if (selectedDates[0] < checkInPicker.selectedDates[0]) {
+                checkOutPicker.setDate(checkInPicker.selectedDates[0]);
+            }
+        }
     });
 
     // Initialize price range slider
@@ -57,130 +64,109 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Handle form submission
-document.getElementById('bookingForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    // Show loading state
-    const searchResults = document.getElementById('searchResults');
-    const hotelList = document.getElementById('hotelList');
-    searchResults.style.display = 'block';
-    hotelList.innerHTML = '<div class="col-12 text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="loading-text mt-3">Searching for the best hotels...</p></div>';
+const bookingForm = document.getElementById("bookingForm");
+if (bookingForm) {
+    bookingForm.addEventListener("submit", async function(e) {
+        e.preventDefault();
+        
+        const destination = document.getElementById("destination").value;
+        const checkIn = document.getElementById("checkIn").value;
+        const checkOut = document.getElementById("checkOut").value;
+        const guests = document.getElementById("guests").value;
 
-    // Get form data
-    const formData = {
-        destination: document.getElementById('destination').value,
-        check_in: document.getElementById('checkIn').value,
-        check_out: document.getElementById('checkOut').value,
-        guests: document.getElementById('guests').value,
-        price_range: document.getElementById('priceRange').value,
-        amenities: getSelectedAmenities()
-    };
-
-    try {
-        // Scroll to search results
-        searchResults.scrollIntoView({ behavior: 'smooth' });
-
-        // Make API request
-        const response = await fetch('/api/search', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(formData)
-        });
-
-        if (!response.ok) {
-            throw new Error('Search failed');
+        if (!destination || !checkIn || !checkOut) {
+            showAlert("Please fill in all required fields", "error");
+            return;
         }
 
-        const data = await response.json();
-        
-        // Display hotels
-        displayHotels(data.hotels);
-    } catch (error) {
-        console.error('Error:', error);
-        hotelList.innerHTML = `
-            <div class="col-12">
-                <div class="alert alert-danger">
-                    <i class="fas fa-exclamation-circle me-2"></i>
-                    Error searching for hotels. Please try again.
-                </div>
-            </div>
-        `;
-    }
-});
+        showLoading();
+        try {
+            const response = await fetch("/api/search", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    destination,
+                    checkIn,
+                    checkOut,
+                    guests: parseInt(guests)
+                })
+            });
 
-// Get selected amenities
-function getSelectedAmenities() {
-    const amenities = [];
-    document.querySelectorAll('.amenities-grid input:checked').forEach(checkbox => {
-        amenities.push(checkbox.id);
+            if (!response.ok) {
+                throw new Error("Search failed");
+            }
+
+            const data = await response.json();
+            displaySearchResults(data);
+            document.getElementById("searchResults").scrollIntoView({ behavior: "smooth" });
+        } catch (error) {
+            console.error("Search error:", error);
+            showAlert("Failed to search hotels. Please try again.", "error");
+        } finally {
+            hideLoading();
+        }
     });
-    return amenities;
 }
 
-// Display hotels
-function displayHotels(hotels) {
-    const hotelList = document.getElementById('hotelList');
-    
-    if (!hotels || hotels.length === 0) {
-        hotelList.innerHTML = `
-            <div class="col-12">
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i>
-                    No hotels found matching your criteria.
-                </div>
-            </div>
-        `;
-        return;
-    }
+// Display search results
+function displaySearchResults(hotels) {
+    const hotelList = document.getElementById("hotelList");
+    if (!hotelList) return;
 
-    hotelList.innerHTML = hotels.map(hotel => `
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="hotel-card">
-                <img src="${hotel.image_url}" alt="${hotel.name}" class="lazy">
-                <div class="card-body">
-                    <h4>${hotel.name}</h4>
-                    <p class="text-muted">
-                        <i class="fas fa-map-marker-alt me-2"></i>${hotel.address}
-                    </p>
-                    <div class="rating mb-2">
-                        ${generateStars(hotel.rating)}
-                        <span class="ms-2">(${hotel.review_count} reviews)</span>
-                    </div>
-                    <div class="price-tag mb-3">
-                        <i class="fas fa-tag me-2"></i>$${hotel.price_per_night}/night
-                    </div>
-                    <div class="amenities">
-                        ${generateAmenities(hotel.amenities)}
-                    </div>
-                    <button class="btn btn-primary w-100 mt-3" onclick="bookHotel('${hotel.id}')">
-                        <i class="fas fa-calendar-check me-2"></i>Book Now
-                    </button>
+    hotelList.innerHTML = "";
+    document.getElementById("searchResults").style.display = "block";
+
+    hotels.forEach(hotel => {
+        const hotelCard = createHotelCard(hotel);
+        hotelList.appendChild(hotelCard);
+    });
+}
+
+// Create hotel card
+function createHotelCard(hotel) {
+    const div = document.createElement("div");
+    div.className = "col-md-6 col-lg-4 mb-4";
+    div.innerHTML = `
+        <div class="hotel-card">
+            <img src="${hotel.image}" alt="${hotel.name}" class="lazy">
+            <div class="hotel-info">
+                <h3>${hotel.name}</h3>
+                <div class="rating mb-2">
+                    ${createStarRating(hotel.rating)}
                 </div>
+                <p class="location">
+                    <i class="fas fa-map-marker-alt"></i> ${hotel.location}
+                </p>
+                <div class="amenities mb-2">
+                    ${createAmenitiesList(hotel.amenities)}
+                </div>
+                <div class="price-info">
+                    <span class="price">$${hotel.price}</span>
+                    <span class="per-night">per night</span>
+                </div>
+                <button class="btn btn-primary w-100" onclick="bookHotel('${hotel.id}')">
+                    Book Now
+                </button>
             </div>
         </div>
-    `).join('');
-
-    // Trigger lazy loading for new images
-    const observer = lozad();
-    observer.observe();
+    `;
+    return div;
 }
 
-// Generate star rating HTML
-function generateStars(rating) {
+// Create star rating
+function createStarRating(rating) {
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 !== 0;
-    let stars = '';
+    let stars = "";
     
     for (let i = 0; i < fullStars; i++) {
         stars += '<i class="fas fa-star text-warning"></i>';
     }
-    
     if (hasHalfStar) {
         stars += '<i class="fas fa-star-half-alt text-warning"></i>';
     }
-    
     const emptyStars = 5 - Math.ceil(rating);
     for (let i = 0; i < emptyStars; i++) {
         stars += '<i class="far fa-star text-warning"></i>';
@@ -189,77 +175,155 @@ function generateStars(rating) {
     return stars;
 }
 
-// Generate amenities HTML
-function generateAmenities(amenities) {
-    const amenityIcons = {
-        wifi: 'fa-wifi',
-        parking: 'fa-parking',
-        pool: 'fa-swimming-pool',
-        gym: 'fa-dumbbell',
-        restaurant: 'fa-utensils',
-        spa: 'fa-spa',
-        bar: 'fa-glass-martini-alt',
-        elevator: 'fa-elevator'
-    };
-
+// Create amenities list
+function createAmenitiesList(amenities) {
     return amenities.map(amenity => `
-        <span class="amenity-badge">
-            <i class="fas ${amenityIcons[amenity] || 'fa-check'}"></i>
-            ${amenity.charAt(0).toUpperCase() + amenity.slice(1)}
+        <span class="amenity">
+            <i class="fas fa-${getAmenityIcon(amenity)}"></i>
+            ${amenity}
         </span>
-    `).join('');
+    `).join("");
 }
 
-// Book hotel
-async function bookHotel(hotelId) {
-    try {
-        const response = await fetch('/api/book', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                hotel_id: hotelId,
-                check_in: document.getElementById('checkIn').value,
-                check_out: document.getElementById('checkOut').value,
-                guests: document.getElementById('guests').value
-            })
-        });
+// Get amenity icon
+function getAmenityIcon(amenity) {
+    const icons = {
+        "WiFi": "wifi",
+        "Pool": "swimming-pool",
+        "Gym": "dumbbell",
+        "Restaurant": "utensils",
+        "Spa": "spa",
+        "Bar": "glass-martini-alt",
+        "Parking": "parking",
+        "Room Service": "concierge-bell"
+    };
+    return icons[amenity] || "check";
+}
 
-        if (!response.ok) {
-            throw new Error('Booking failed');
+// Show destination details
+function showDestinationDetails(destination) {
+    const modal = new bootstrap.Modal(document.getElementById("destinationModal"));
+    const content = document.getElementById("destinationContent");
+    
+    // Mock destination data (replace with API call)
+    const destinations = {
+        "new-york": {
+            name: "New York City",
+            description: "The city that never sleeps offers world-class hotels in iconic locations.",
+            highlights: [
+                "Times Square",
+                "Central Park",
+                "Broadway",
+                "Statue of Liberty"
+            ],
+            image: "https://images.unsplash.com/photo-1538970272646-f61fabb3a8a2?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"
+        },
+        "london": {
+            name: "London",
+            description: "Experience luxury and history in the heart of the British capital.",
+            highlights: [
+                "Big Ben",
+                "Buckingham Palace",
+                "Tower Bridge",
+                "Westminster Abbey"
+            ],
+            image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"
+        },
+        "paris": {
+            name: "Paris",
+            description: "Discover romance and elegance in the City of Light.",
+            highlights: [
+                "Eiffel Tower",
+                "Louvre Museum",
+                "Notre-Dame",
+                "Arc de Triomphe"
+            ],
+            image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"
+        },
+        "tokyo": {
+            name: "Tokyo",
+            description: "Immerse yourself in the perfect blend of tradition and modernity.",
+            highlights: [
+                "Shibuya Crossing",
+                "Senso-ji Temple",
+                "Tokyo Skytree",
+                "Meiji Shrine"
+            ],
+            image: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"
         }
+    };
 
-        const data = await response.json();
-        
-        // Show success message
-        const hotelList = document.getElementById('hotelList');
-        hotelList.innerHTML = `
-            <div class="col-12">
-                <div class="alert alert-success">
-                    <i class="fas fa-check-circle me-2"></i>
-                    Successfully booked ${data.hotel_name}! Your booking reference is: ${data.booking_reference}
-                </div>
-            </div>
-        `;
-    } catch (error) {
-        console.error('Error:', error);
-        const hotelList = document.getElementById('hotelList');
-        hotelList.innerHTML = `
-            <div class="col-12">
-                <div class="alert alert-danger">
-                    <i class="fas fa-exclamation-circle me-2"></i>
-                    Error booking hotel. Please try again.
-                </div>
-            </div>
-        `;
+    const dest = destinations[destination];
+    if (!dest) return;
+
+    content.innerHTML = `
+        <div class="destination-details">
+            <img src="${dest.image}" alt="${dest.name}" class="img-fluid rounded mb-4">
+            <h3>${dest.name}</h3>
+            <p>${dest.description}</p>
+            <h4>Highlights</h4>
+            <ul class="list-unstyled">
+                ${dest.highlights.map(highlight => `
+                    <li><i class="fas fa-check text-success me-2"></i>${highlight}</li>
+                `).join("")}
+            </ul>
+        </div>
+    `;
+
+    modal.show();
+}
+
+// Focus destination input
+function focusDestination() {
+    const destinationInput = document.getElementById("destination");
+    if (destinationInput) {
+        destinationInput.focus();
     }
 }
 
+// Show loading state
+function showLoading() {
+    const loading = document.createElement("div");
+    loading.className = "loading-overlay";
+    loading.innerHTML = `
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Searching for hotels...</p>
+    `;
+    document.body.appendChild(loading);
+}
+
+// Hide loading state
+function hideLoading() {
+    const loading = document.querySelector(".loading-overlay");
+    if (loading) {
+        loading.remove();
+    }
+}
+
+// Show alert message
+function showAlert(message, type = "info") {
+    const alert = document.createElement("div");
+    alert.className = `alert alert-${type} alert-dismissible fade show`;
+    alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.insertBefore(alert, document.body.firstChild);
+    setTimeout(() => alert.remove(), 5000);
+}
+
+// Book hotel
+function bookHotel(hotelId) {
+    // Implement booking logic
+    showAlert("Booking functionality coming soon!", "info");
+}
+
 // Handle filter changes
-document.querySelectorAll('.filters-card input').forEach(input => {
-    input.addEventListener('change', function() {
-        // Re-trigger search with new filters
-        document.getElementById('bookingForm').dispatchEvent(new Event('submit'));
+document.querySelectorAll(".filters-card input, .filters-card select").forEach(filter => {
+    filter.addEventListener("change", function() {
+        // Implement filter logic
+        showAlert("Filters applied!", "info");
     });
 }); 

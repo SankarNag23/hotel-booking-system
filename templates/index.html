@@ -3,21 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Find and Book Hotels - Best Deals Worldwide</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>AIStay - Find and Book Hotels</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <link rel="stylesheet" href="/static/css/style.css">
-    <!-- Add lazy loading for images -->
-    <script src="https://cdn.jsdelivr.net/npm/lozad/dist/lozad.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
 </head>
 <body>
     <!-- Header -->
     <header class="header">
-        <nav class="navbar navbar-expand-lg navbar-light bg-white">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
             <div class="container">
-                <a class="navbar-brand" href="/">
-                    <img src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80" alt="Hotel Logo" class="lazy">
+                <a class="navbar-brand logo" href="/">
+                    <i class="fas fa-hotel"></i>
+                    AIStay
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span class="navbar-toggler-icon"></span>
@@ -25,13 +24,13 @@
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item">
-                            <a class="nav-link" href="#"><i class="fas fa-user"></i> Sign In</a>
+                            <a class="nav-link" href="#"><i class="fas fa-user me-1"></i>Sign In</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#"><i class="fas fa-heart"></i> Saved</a>
+                            <a class="nav-link" href="#"><i class="fas fa-heart me-1"></i>Saved</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#"><i class="fas fa-bell"></i> Alerts</a>
+                            <a class="nav-link" href="#"><i class="fas fa-bell me-1"></i>Alerts</a>
                         </li>
                     </ul>
                 </div>
@@ -39,133 +38,96 @@
         </nav>
     </header>
 
-    <!-- Hero Section with Parallax -->
+    <!-- Hero Section -->
     <section class="hero-section">
         <div class="container">
-            <div class="row align-items-center min-vh-75">
-                <div class="col-lg-6">
-                    <h1 class="display-4 fw-bold text-white mb-4">Find Your Perfect Stay</h1>
-                    <p class="lead text-white mb-5">Discover amazing deals on hotels worldwide. Book with confidence and save up to 50% on your next stay.</p>
-                    <a href="#bookingForm" class="btn btn-primary btn-lg">Start Your Search</a>
-                </div>
+            <div class="hero-content">
+                <h1>Find Your Perfect Stay</h1>
+                <p>Discover amazing hotels at unbeatable prices</p>
+                <button class="btn btn-primary btn-lg" onclick="focusDestination()">
+                    Start Your Search
+                </button>
             </div>
         </div>
     </section>
 
-    <!-- Booking Form Section -->
-    <section class="booking-section py-5">
+    <!-- Search Section -->
+    <section class="search-section">
         <div class="container">
-            <div class="booking-form" id="bookingForm">
-                <form id="bookingForm">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label">Destination</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
-                                <input type="text" class="form-control" id="destination" placeholder="Where are you going?" required>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Check-in</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-calendar"></i></span>
-                                <input type="text" class="form-control" id="checkIn" required>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Check-out</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-calendar"></i></span>
-                                <input type="text" class="form-control" id="checkOut" required>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Guests</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                <input type="number" class="form-control" id="guests" min="1" value="1" required>
-                            </div>
+            <form id="bookingForm" class="booking-form">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="destination">Destination</label>
+                            <input type="text" class="form-control" id="destination" placeholder="Where are you going?" required>
                         </div>
                     </div>
-                    <div class="row mt-4">
-                        <div class="col-12">
-                            <button type="submit" class="btn btn-primary w-100">Search Hotels</button>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="checkIn">Check-in</label>
+                            <input type="text" class="form-control" id="checkIn" required>
                         </div>
                     </div>
-                </form>
-            </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="checkOut">Check-out</label>
+                            <input type="text" class="form-control" id="checkOut" required>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="guests">Guests</label>
+                            <select class="form-control" id="guests">
+                                <option value="1">1 Guest</option>
+                                <option value="2">2 Guests</option>
+                                <option value="3">3 Guests</option>
+                                <option value="4">4 Guests</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search me-2"></i>Search Hotels
+                        </button>
+                    </div>
+                </div>
+            </form>
         </div>
     </section>
 
-    <!-- Popular Destinations Section -->
+    <!-- Popular Destinations -->
     <section class="popular-destinations py-5">
         <div class="container">
-            <h2 class="text-center mb-5">Popular Destinations</h2>
-            <div class="row">
-                <div class="col-md-3">
-                    <div class="destination-card">
-                        <img src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="New York" class="lazy">
-                        <div class="destination-content">
-                            <h3>New York</h3>
-                            <p>From $199/night</p>
-                        </div>
+            <h2 class="text-center mb-4">Popular Destinations</h2>
+            <div class="destinations-grid">
+                <div class="destination-card" onclick="showDestinationDetails('new-york')">
+                    <img src="https://images.unsplash.com/photo-1538970272646-f61fabb3a8a2?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80" alt="New York">
+                    <div class="destination-info">
+                        <h3>New York</h3>
+                        <p>From $150/night</p>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="destination-card">
-                        <img src="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="Paris" class="lazy">
-                        <div class="destination-content">
-                            <h3>Paris</h3>
-                            <p>From $249/night</p>
-                        </div>
+                <div class="destination-card" onclick="showDestinationDetails('london')">
+                    <img src="https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80" alt="London">
+                    <div class="destination-info">
+                        <h3>London</h3>
+                        <p>From $180/night</p>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="destination-card">
-                        <img src="https://images.unsplash.com/photo-1533929736458-ca588d08c8be?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="London" class="lazy">
-                        <div class="destination-content">
-                            <h3>London</h3>
-                            <p>From $179/night</p>
-                        </div>
+                <div class="destination-card" onclick="showDestinationDetails('paris')">
+                    <img src="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80" alt="Paris">
+                    <div class="destination-info">
+                        <h3>Paris</h3>
+                        <p>From $200/night</p>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="destination-card">
-                        <img src="https://images.unsplash.com/photo-1536098561742-ca998e48cbcc?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="Tokyo" class="lazy">
-                        <div class="destination-content">
-                            <h3>Tokyo</h3>
-                            <p>From $299/night</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Features Section -->
-    <section class="features-section py-5 bg-light">
-        <div class="container">
-            <h2 class="text-center mb-5">Why Choose Us</h2>
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="feature-card text-center">
-                        <i class="fas fa-percentage fa-3x mb-3 text-primary"></i>
-                        <h3>Best Price Guarantee</h3>
-                        <p>Find the best deals or we'll match the price</p>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="feature-card text-center">
-                        <i class="fas fa-clock fa-3x mb-3 text-primary"></i>
-                        <h3>24/7 Support</h3>
-                        <p>Round-the-clock assistance for your queries</p>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="feature-card text-center">
-                        <i class="fas fa-shield-alt fa-3x mb-3 text-primary"></i>
-                        <h3>Secure Booking</h3>
-                        <p>Safe and secure payment processing</p>
+                <div class="destination-card" onclick="showDestinationDetails('tokyo')">
+                    <img src="https://images.unsplash.com/photo-1503899036084-c55cdd92da26?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80" alt="Tokyo">
+                    <div class="destination-info">
+                        <h3>Tokyo</h3>
+                        <p>From $160/night</p>
                     </div>
                 </div>
             </div>
@@ -173,14 +135,14 @@
     </section>
 
     <!-- Search Results Section -->
-    <section class="search-results py-5" id="searchResults" style="display: none;">
+    <section id="searchResults" class="search-results py-5" style="display: none;">
         <div class="container">
             <div class="row">
                 <!-- Filters -->
-                <div class="col-lg-3">
+                <div class="col-md-3">
                     <div class="filters-card">
                         <h4>Filters</h4>
-                        <div class="mb-4">
+                        <div class="mb-3">
                             <label class="form-label">Price Range</label>
                             <input type="range" class="form-range" id="priceRange" min="0" max="1000" step="50">
                             <div class="d-flex justify-content-between">
@@ -189,64 +151,58 @@
                                 <span>$1000</span>
                             </div>
                         </div>
-                        <div class="mb-4">
+                        <div class="mb-3">
                             <label class="form-label">Minimum Stars</label>
-                            <div class="rating-filter">
-                                <i class="fas fa-star text-warning"></i>
-                                <i class="fas fa-star text-warning"></i>
-                                <i class="fas fa-star text-warning"></i>
-                                <i class="fas fa-star text-warning"></i>
-                                <i class="far fa-star text-warning"></i>
-                            </div>
+                            <select class="form-select" id="minStars">
+                                <option value="1">1 Star</option>
+                                <option value="2">2 Stars</option>
+                                <option value="3">3 Stars</option>
+                                <option value="4">4 Stars</option>
+                                <option value="5">5 Stars</option>
+                            </select>
                         </div>
-                        <div class="mb-4">
+                        <div class="mb-3">
                             <label class="form-label">Room Type</label>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="standardRoom">
-                                <label class="form-check-label" for="standardRoom">Standard Room</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="deluxeRoom">
-                                <label class="form-check-label" for="deluxeRoom">Deluxe Room</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="suiteRoom">
-                                <label class="form-check-label" for="suiteRoom">Suite</label>
-                            </div>
+                            <select class="form-select" id="roomType">
+                                <option value="standard">Standard</option>
+                                <option value="deluxe">Deluxe</option>
+                                <option value="suite">Suite</option>
+                                <option value="presidential">Presidential</option>
+                            </select>
                         </div>
-                        <div class="mb-4">
+                        <div class="mb-3">
                             <label class="form-label">Amenities</label>
                             <div class="amenities-grid">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="wifi">
-                                    <label class="form-check-label" for="wifi">
-                                        <i class="fas fa-wifi"></i> WiFi
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="parking">
-                                    <label class="form-check-label" for="parking">
-                                        <i class="fas fa-parking"></i> Parking
-                                    </label>
+                                    <label class="form-check-label" for="wifi">WiFi</label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="pool">
-                                    <label class="form-check-label" for="pool">
-                                        <i class="fas fa-swimming-pool"></i> Pool
-                                    </label>
+                                    <label class="form-check-label" for="pool">Pool</label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="gym">
-                                    <label class="form-check-label" for="gym">
-                                        <i class="fas fa-dumbbell"></i> Gym
-                                    </label>
+                                    <label class="form-check-label" for="gym">Gym</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="restaurant">
+                                    <label class="form-check-label" for="restaurant">Restaurant</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="spa">
+                                    <label class="form-check-label" for="spa">Spa</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="bar">
+                                    <label class="form-check-label" for="bar">Bar</label>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <!-- Hotel List -->
-                <div class="col-lg-9">
+                <div class="col-md-9">
                     <div id="hotelList" class="row">
                         <!-- Hotels will be dynamically added here -->
                     </div>
@@ -255,63 +211,54 @@
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="footer py-5">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-3">
-                    <h5>About Us</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="#"><i class="fas fa-info-circle"></i> About Our Company</a></li>
-                        <li><a href="#"><i class="fas fa-envelope"></i> Contact Us</a></li>
-                        <li><a href="#"><i class="fas fa-newspaper"></i> Press Center</a></li>
-                    </ul>
+    <!-- Destination Details Modal -->
+    <div class="modal fade" id="destinationModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Destination Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="col-md-3">
-                    <h5>For Hoteliers</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="#"><i class="fas fa-building"></i> Partner With Us</a></li>
-                        <li><a href="#"><i class="fas fa-chart-line"></i> Hotel Marketing</a></li>
-                        <li><a href="#"><i class="fas fa-tools"></i> Hotel Management</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-3">
-                    <h5>Legal</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="#"><i class="fas fa-file-contract"></i> Terms & Conditions</a></li>
-                        <li><a href="#"><i class="fas fa-shield-alt"></i> Privacy Policy</a></li>
-                        <li><a href="#"><i class="fas fa-cookie-bite"></i> Cookie Policy</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-3">
-                    <h5>Connect With Us</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="#"><i class="fab fa-facebook"></i> Facebook</a></li>
-                        <li><a href="#"><i class="fab fa-twitter"></i> Twitter</a></li>
-                        <li><a href="#"><i class="fab fa-instagram"></i> Instagram</a></li>
-                    </ul>
+                <div class="modal-body">
+                    <div id="destinationContent">
+                        <!-- Content will be dynamically added here -->
+                    </div>
                 </div>
             </div>
-            <hr class="my-4">
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer bg-dark text-light py-4">
+        <div class="container">
             <div class="row">
-                <div class="col-md-6">
-                    <p class="mb-0">&copy; 2024 Hotel Booking System. All rights reserved.</p>
+                <div class="col-md-4">
+                    <h5>About AIStay</h5>
+                    <p>Your trusted partner in finding the perfect hotel stay.</p>
                 </div>
-                <div class="col-md-6 text-md-end">
-                    <img src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80" alt="Payment Methods" class="lazy" style="height: 30px;">
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-light">About Us</a></li>
+                        <li><a href="#" class="text-light">Contact</a></li>
+                        <li><a href="#" class="text-light">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Connect With Us</h5>
+                    <div class="social-links">
+                        <a href="#" class="text-light me-3"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="text-light me-3"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-light me-3"><i class="fab fa-instagram"></i></a>
+                    </div>
                 </div>
             </div>
         </div>
     </footer>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="/static/js/main.js"></script>
-    <script>
-        // Initialize lazy loading
-        const observer = lozad();
-        observer.observe();
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/lozad/dist/lozad.min.js"></script>
+    <script src="{{ url_for('static', path='/js/main.js') }}"></script>
 </body>
 </html>
