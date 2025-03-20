@@ -2,7 +2,9 @@ services:
   - type: web
     name: hotel-booking-system
     env: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: |
+      python -m pip install --upgrade pip
+      pip install --no-cache-dir -r requirements.txt
     startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
@@ -17,6 +19,8 @@ services:
         value: false
       - key: ALLOWED_ORIGINS
         value: https://${RENDER_EXTERNAL_HOSTNAME}
+      - key: PIP_NO_CACHE_DIR
+        value: "true"
     healthCheckPath: /
     autoDeploy: true
     disk:
@@ -31,7 +35,9 @@ services:
         - static/**
         - hotel_booking_system_v2.py
         - hotel_providers.py
-        - .env
+        - middleware.py
+        - validators.py
+        - setup_api_keys.py
     headers:
       - path: /*
         name: Cache-Control
