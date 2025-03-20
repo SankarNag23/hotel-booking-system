@@ -1,13 +1,6 @@
 import os
-import json
 import logging
-import httpx
 from typing import List, Dict, Any
-import asyncio
-from datetime import datetime, timedelta
-from overpy import Overpass
-from geopy.geocoders import Nominatim
-from geopy.exc import GeocoderTimedOut
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -15,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 class HotelDataProvider:
     def __init__(self):
-        self.use_mock_data = os.getenv("USE_MOCK_DATA", "true").lower() == "true"
+        self.use_mock_data = True  # Always use mock data
         self.mock_data = {
             "london": [{
                 "id": "ld001",
@@ -66,9 +59,20 @@ class HotelDataProvider:
                 "nearby": ["Eiffel Tower", "Musée d'Orsay"]
             }]
         }
-        self.overpass = Overpass()
-        self.geocoder = Nominatim(user_agent="hotel_booking_system")
-        
+
+    async def get_google_places_hotels(self, destination: str) -> List[Dict[str, Any]]:
+        """Return mock hotel data for a destination"""
+        logger.info(f"Using mock data for {destination}")
+        return self.get_mock_hotels(destination)
+
+    def get_mock_hotels(self, destination: str) -> List[Dict[str, Any]]:
+        """Get mock hotel data for a destination"""
+        destination_lower = destination.lower()
+        if destination_lower in self.mock_data:
+            logger.info(f"Found hotels for {destination}")
+            return self.mock_data[destination_lower]
+        return []
+
     async def get_coordinates(self, destination: str) -> Any:
         """Get coordinates for a destination using geopy"""
         try:
@@ -79,20 +83,6 @@ class HotelDataProvider:
         except GeocoderTimedOut:
             logger.error(f"Geocoding timeout for destination: {destination}")
             return None
-
-    async def get_google_places_hotels(self, destination: str) -> List[Dict[str, Any]]:
-        """Fetch hotel data from Google Places API with fallback to mock data"""
-        # Since USE_MOCK_DATA is true, always return mock data
-        logger.info("Using mock data as configured")
-        return self.get_mock_hotels(destination)
-
-    def get_mock_hotels(self, destination: str) -> List[Dict[str, Any]]:
-        """Get mock hotel data for a destination"""
-        destination_lower = destination.lower()
-        if destination_lower in self.mock_data:
-            logger.info(f"Using mock data for {destination}")
-            return self.mock_data[destination_lower]
-        return []
 
     def transform_google_data(self, content_data: Dict[str, Any], prices_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Transform Google Hotels API data to our format"""

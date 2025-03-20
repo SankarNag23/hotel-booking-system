@@ -3,31 +3,18 @@ services:
     name: hotel-booking-system
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+    startCommand: python3 -m uvicorn app:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.7
       - key: USE_MOCK_DATA
         value: "true"
-    healthCheckPath: /
+    healthCheckPath: /health
     autoDeploy: true
-    disk:
-      name: hotel-booking-data
-      mountPath: /data
-      sizeGB: 1
     buildFilter:
       paths:
         - app.py
         - requirements.txt
         - templates/**
         - static/**
-        - hotel_booking_system_v2.py
-        - hotel_providers.py
-        - middleware.py
-        - validators.py
-        - setup_api_keys.py
-        - mock_data/**
-    headers:
-      - path: /*
-        name: Cache-Control
-        value: no-cache 
+        - hotel_providers.py 
