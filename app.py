@@ -506,6 +506,10 @@ async def get_room_types():
         "room_types": [{"id": rt.name, "name": rt.value} for rt in RoomType]
     }
 
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "version": "2.1"}
+
 if __name__ == "__main__":
     uvicorn.run(
         app,
