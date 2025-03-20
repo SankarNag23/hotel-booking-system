@@ -3,9 +3,9 @@ services:
     name: hotel-booking-system
     env: python
     buildCommand: |
-      python -m pip install --upgrade pip
-      pip install -r requirements.txt
-    startCommand: python -m uvicorn app:app --host 0.0.0.0 --port $PORT
+      python3 -m pip install --upgrade pip
+      pip3 install -r requirements.txt
+    startCommand: python3 -m uvicorn app:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.7
@@ -13,17 +13,15 @@ services:
         value: "true"
       - key: PYTHONPATH
         value: .
+      - key: PYTHONUNBUFFERED
+        value: "true"
     healthCheckPath: /health
     autoDeploy: true
     buildFilter:
       paths:
-        - app.py
+        - "**/*.py"
         - requirements.txt
         - templates/**
         - static/**
-        - hotel_providers.py
-        - hotel_booking_system_v2.py
-        - middleware.py
-        - validators.py
         - .env
         - README.md 
