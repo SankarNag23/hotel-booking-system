@@ -8,4 +8,8 @@ python-multipart==0.0.5
 python-json-logger==2.0.2
 requests==2.26.0
 starlette==0.14.2
-secure==0.3.0 
+secure==0.3.0
+slowapi==0.1.4
+phonenumbers==8.12.33
+cryptography==3.4.7
+email-validator==1.1.3 
