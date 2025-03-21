@@ -3,22 +3,12 @@ services:
     name: hotel-booking-system-v2
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    startCommand: python3 -m uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHONPATH
         value: .
-      - key: PORT
-        value: 10000
-      - key: API_KEY
-        value: "your-api-key-here"
-      - key: BOOKING_API_KEY
-        value: "your-booking-api-key-here"
-      - key: GOOGLE_HOTELS_API_KEY
-        value: "your-google-hotels-api-key-here"
-      - key: GOOGLE_HOTELS_CLIENT_ID
-        value: "your-google-hotels-client-id-here"
-      - key: ALLOWED_ORIGINS
-        value: "https://hotel-booking-system-v2.onrender.com"
+      - key: PYTHON_VERSION
+        value: 3.9.0
     healthCheckPath: /health
     autoDeploy: true
     headers:
