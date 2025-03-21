@@ -3,7 +3,7 @@ Hotel Booking System
 Version: 2.1.0
 """
 
-from app.app import app
+from .app import app
 from .hotel_booking_system_v2 import UserInterfaceAgent, BookingAPIAgent, IntegrationAgent, RoomType
 from .hotel_providers import HotelDataProvider
 from .middleware import SecurityHeadersMiddleware, RequestLoggingMiddleware, RateLimitMiddleware, SQLInjectionMiddleware, XSSMiddleware

@@ -6,14 +6,14 @@ services:
     buildCommand: |
       python3.9 -m pip install --upgrade pip
       python3.9 -m pip install -r requirements.txt
-    startCommand: cd /opt/render/project/src && PYTHONPATH=/opt/render/project/src python3.9 -m uvicorn app.app:app --host 0.0.0.0 --port $PORT --workers 1
+    startCommand: python3.9 -m uvicorn app.app:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.7
       - key: USE_MOCK_DATA
         value: "true"
       - key: PYTHONPATH
-        value: /opt/render/project/src
+        value: .
       - key: PYTHONUNBUFFERED
         value: "true"
     healthCheckPath: /health
