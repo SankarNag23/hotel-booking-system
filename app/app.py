@@ -12,11 +12,11 @@ from datetime import datetime, timedelta
 import random
 import string
 import httpx
-from .hotel_booking_system_v2 import UserInterfaceAgent, BookingAPIAgent, IntegrationAgent
+from app.hotel_booking_system_v2 import UserInterfaceAgent, BookingAPIAgent, IntegrationAgent
 from dotenv import load_dotenv
-from .hotel_providers import HotelDataProvider
-from .middleware import SecurityHeadersMiddleware
-from .validators import BookingRequest, sanitize_search_params, validate_api_key, validate_hotel_id, sanitize_log_data
+from app.hotel_providers import HotelDataProvider
+from app.middleware import SecurityHeadersMiddleware
+from app.validators import BookingRequest, sanitize_search_params, validate_api_key, validate_hotel_id, sanitize_log_data
 from fastapi.security import APIKeyHeader
 from fastapi.security.api_key import APIKey
 from starlette.status import HTTP_403_FORBIDDEN
@@ -406,7 +406,7 @@ async def get_amenities():
 @app.get("/api/room-types")
 async def get_room_types():
     """Get list of available room types"""
-    from .hotel_booking_system_v2 import RoomType
+    from app.hotel_booking_system_v2 import RoomType
     return {
         "status": "success",
         "room_types": [{"id": rt.name, "name": rt.value} for rt in RoomType]
