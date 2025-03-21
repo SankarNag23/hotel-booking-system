@@ -15,41 +15,40 @@ import httpx
 from .hotel_booking_system_v2 import UserInterfaceAgent, BookingAPIAgent, IntegrationAgent
 from dotenv import load_dotenv
 from .hotel_providers import HotelDataProvider
-from .middleware import (
-    SecurityHeadersMiddleware,
-    RequestLoggingMiddleware,
-    RateLimitMiddleware,
-    SQLInjectionMiddleware,
-    XSSMiddleware
-)
-from .validators import (
-    BookingRequest,
-    sanitize_search_params,
-    validate_api_key,
-    validate_hotel_id,
-    sanitize_log_data
-)
+from .middleware import SecurityHeadersMiddleware
+from .validators import BookingRequest, sanitize_search_params, validate_api_key, validate_hotel_id, sanitize_log_data
 from fastapi.security import APIKeyHeader
 from fastapi.security.api_key import APIKey
 from starlette.status import HTTP_403_FORBIDDEN
 import secrets
 import re
 import json
-from fastapi.middleware import Middleware
-from slowapi import Limiter
-from slowapi.util import get_remote_address
-from slowapi.errors import RateLimitExceeded
-from slowapi.middleware import SlowAPIMiddleware
 
-# Configure logging with more detailed format
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Load environment variables from .env file
+# Load environment variables
 load_dotenv()
+
+# Initialize FastAPI app
+app = FastAPI(
+    title="Hotel Booking System",
+    description="A modern hotel booking system with advanced features",
+    version="2.1.0"
+)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[os.getenv("ALLOWED_ORIGINS", "http://localhost:8000")],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Add security headers middleware
+app.add_middleware(SecurityHeadersMiddleware)
 
 # Get API keys from environment variables with validation
 BOOKING_API_KEY = os.getenv("BOOKING_API_KEY")
@@ -62,31 +61,6 @@ if not validate_api_key(BOOKING_API_KEY):
 
 # Check if Google Hotels API credentials are available
 GOOGLE_HOTELS_AVAILABLE = bool(GOOGLE_HOTELS_API_KEY and GOOGLE_HOTELS_CLIENT_ID)
-
-app = FastAPI(
-    title="Hotel Booking System API",
-    description="API for the Automated Hotel Booking System V2.1",
-    version="2.1.0",
-    docs_url="/api/docs",  # Restrict Swagger UI access
-    redoc_url="/api/redoc"  # Restrict ReDoc access
-)
-
-# Add security middlewares
-app.add_middleware(SecurityHeadersMiddleware)
-app.add_middleware(RequestLoggingMiddleware)
-app.add_middleware(RateLimitMiddleware, max_requests=100, window_seconds=60)
-app.add_middleware(SQLInjectionMiddleware)
-app.add_middleware(XSSMiddleware)
-
-# Configure CORS with specific origins
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[os.getenv("ALLOWED_ORIGINS", "http://localhost:8000")],
-    allow_credentials=True,
-    allow_methods=["GET", "POST"],
-    allow_headers=["*"],
-    max_age=600
-)
 
 # Get absolute paths for static files and templates
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -336,88 +310,6 @@ async def get_api_key(api_key_header: str = Security(api_key_header)):
         )
     return api_key_header
 
-# Rate limiting
-limiter = Limiter(key_func=get_remote_address)
-app.state.limiter = limiter
-app.add_middleware(SlowAPIMiddleware)
-
-@app.exception_handler(RateLimitExceeded)
-async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
-    return JSONResponse(
-        status_code=429,
-        content={"detail": "Too many requests, please try again later."}
-    )
-
-async def get_google_hotels(destination: str, check_in: str, check_out: str) -> List[dict]:
-    """Fetch hotel data from Google Hotels API with improved error handling"""
-    if not GOOGLE_HOTELS_AVAILABLE:
-        logger.warning("Google Hotels API credentials not available. Using mock data.")
-        return []
-        
-    try:
-        async with httpx.AsyncClient() as client:
-            # Get hotel content
-            content_response = await client.get(
-                f"{GOOGLE_HOTELS_CONTENT_URL}",
-                params={
-                    "key": GOOGLE_HOTELS_API_KEY,
-                    "clientId": GOOGLE_HOTELS_CLIENT_ID,
-                    "location": destination,
-                    "languageCode": "en"
-                }
-            )
-            
-            # Get hotel prices
-            prices_response = await client.get(
-                f"{GOOGLE_HOTELS_PRICES_URL}",
-                params={
-                    "key": GOOGLE_HOTELS_API_KEY,
-                    "clientId": GOOGLE_HOTELS_CLIENT_ID,
-                    "location": destination,
-                    "checkIn": check_in,
-                    "checkOut": check_out
-                }
-            )
-            
-            if content_response.status_code == 200 and prices_response.status_code == 200:
-                content_data = content_response.json()
-                prices_data = prices_response.json()
-                
-                # Combine and format the data
-                hotels = []
-                for hotel in content_data.get("hotels", []):
-                    hotel_id = hotel.get("id")
-                    price_info = next(
-                        (p for p in prices_data.get("prices", []) if p.get("hotelId") == hotel_id),
-                        {}
-                    )
-                    
-                    hotels.append({
-                        "id": hotel_id,
-                        "name": hotel.get("name"),
-                        "address": hotel.get("address"),
-                        "stars": hotel.get("starRating", 0),
-                        "rating": hotel.get("rating", 0),
-                        "reviews": hotel.get("reviewCount", 0),
-                        "description": hotel.get("description", ""),
-                        "price_per_night": price_info.get("price", {}).get("amount", 0),
-                        "room_types": hotel.get("roomTypes", []),
-                        "amenities": hotel.get("amenities", []),
-                        "image_url": hotel.get("images", [{}])[0].get("url", ""),
-                        "highlights": hotel.get("highlights", []),
-                        "location": hotel.get("location", {}).get("address", ""),
-                        "nearby_attractions": hotel.get("nearbyAttractions", [])
-                    })
-                
-                logger.info(f"Successfully fetched {len(hotels)} hotels from Google Hotels API")
-                return hotels
-            else:
-                logger.error(f"Failed to fetch hotel data. Content status: {content_response.status_code}, Prices status: {prices_response.status_code}")
-                return []
-    except Exception as e:
-        logger.error(f"Error fetching hotel data from Google Hotels API: {str(e)}")
-        return []
-
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     """Render the main page with improved error handling"""
@@ -428,7 +320,6 @@ async def read_root(request: Request):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.post("/api/search")
-@limiter.limit("30/minute")
 async def search_hotels(request: Request, search_params: Dict):
     """Search for hotels with improved security and validation"""
     try:
@@ -465,7 +356,6 @@ async def search_hotels(request: Request, search_params: Dict):
         raise HTTPException(status_code=500, detail="Failed to search hotels")
 
 @app.post("/api/book")
-@limiter.limit("5/minute")
 async def book_hotel(request: BookingRequest):
     """Book a hotel with enhanced security and validation"""
     try:
