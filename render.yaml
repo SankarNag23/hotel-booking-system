@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: hotel-booking-system
+    name: hotel-booking-system-v2
     env: python
     buildCommand: |
       python -m pip install --upgrade pip
@@ -17,25 +17,8 @@ services:
         value: 8000
       - key: PYTHON_VERSION
         value: 3.9.0
-      - key: PYTHONPATH
-        value: .
-      - key: PIP_NO_CACHE_DIR
-        value: "1"
-    healthCheckPath: /
+    healthCheckPath: /health
     autoDeploy: true
-    plan: free
-    disk:
-      name: data
-      mountPath: /data
-      sizeGB: 1
-    buildFilter:
-      paths:
-        - app.py
-        - requirements.txt
-        - templates/**
-        - static/**
-        - hotel_booking_system_v2.py
-        - .env
     headers:
       - path: /*
         name: Cache-Control
