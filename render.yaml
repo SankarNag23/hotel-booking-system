@@ -1,27 +1,16 @@
 services:
   - type: web
-    name: hotel-booking-system
+    name: hotel-booking-system-v2
     env: python
-    plan: free
-    buildCommand: |
-      python3.9 -m pip install --upgrade pip
-      python3.9 -m pip install -r requirements.txt
-    startCommand: python3.9 -m uvicorn app.app:app --host 0.0.0.0 --port $PORT
+    buildCommand: pip install -r requirements.txt
+    startCommand: python3.9 -m uvicorn app:app --host 0.0.0.0 --port $PORT
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.9.7
-      - key: USE_MOCK_DATA
-        value: "true"
       - key: PYTHONPATH
         value: .
-      - key: PYTHONUNBUFFERED
-        value: "true"
+      - key: PORT
+        value: 10000
     healthCheckPath: /health
     autoDeploy: true
-    buildFilter:
-      paths:
-        - app/**/*.py
-        - requirements.txt
     headers:
       - path: /*
         name: Cache-Control
