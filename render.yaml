@@ -2,11 +2,19 @@ services:
   - type: web
     name: hotel-booking-system-v2
     env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: python3 -m uvicorn main:app --host 0.0.0.0 --port $PORT
+    buildCommand: |
+      python -m pip install --upgrade pip
+      pip install --no-cache-dir -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT --workers 4
     envVars:
-      - key: PYTHONPATH
-        value: .
+      - key: BOOKING_API_KEY
+        value: test_api_key_123456789
+      - key: GOOGLE_HOTELS_API_KEY
+        value: AIzaSyDxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxX
+      - key: GOOGLE_HOTELS_CLIENT_ID
+        value: 123456789-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com
+      - key: PORT
+        value: 8000
       - key: PYTHON_VERSION
         value: 3.9.0
     healthCheckPath: /health
