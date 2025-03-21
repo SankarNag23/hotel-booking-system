@@ -9,6 +9,16 @@ services:
         value: .
       - key: PORT
         value: 10000
+      - key: API_KEY
+        value: "your-api-key-here"
+      - key: BOOKING_API_KEY
+        value: "your-booking-api-key-here"
+      - key: GOOGLE_HOTELS_API_KEY
+        value: "your-google-hotels-api-key-here"
+      - key: GOOGLE_HOTELS_CLIENT_ID
+        value: "your-google-hotels-client-id-here"
+      - key: ALLOWED_ORIGINS
+        value: "https://hotel-booking-system-v2.onrender.com"
     healthCheckPath: /health
     autoDeploy: true
     headers:
