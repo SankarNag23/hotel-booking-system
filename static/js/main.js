@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Handle form submission
+    // Handle form submission
 const bookingForm = document.getElementById("bookingForm");
 if (bookingForm) {
     bookingForm.addEventListener("submit", async function(e) {
@@ -145,13 +145,13 @@ function createHotelCard(hotel) {
                 <div class="price-info">
                     <span class="price">$${hotel.price}</span>
                     <span class="per-night">per night</span>
-                </div>
+                    </div>
                 <button class="btn btn-primary w-100" onclick="bookHotel('${hotel.id}')">
-                    Book Now
-                </button>
+                        Book Now
+                    </button>
+                </div>
             </div>
-        </div>
-    `;
+        `;
     return div;
 }
 
