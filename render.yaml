@@ -2,24 +2,10 @@ services:
   - type: web
     name: hotel-booking-system-v2
     env: python
-    buildCommand: |
-      python -m pip install --upgrade pip
-      pip install --no-cache-dir -r requirements.txt
-    startCommand: gunicorn main:app --host 0.0.0.0 --port $PORT --workers 4
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
     envVars:
-      - key: BOOKING_API_KEY
-        value: test_api_key_123456789
-      - key: GOOGLE_HOTELS_API_KEY
-        value: AIzaSyDxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXxX
-      - key: GOOGLE_HOTELS_CLIENT_ID
-        value: 123456789-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com
       - key: PORT
         value: 8000
-      - key: PYTHON_VERSION
-        value: 3.13.0
-    healthCheckPath: /
+    healthCheckPath: /health
     autoDeploy: true
-    headers:
-      - path: /*
-        name: Cache-Control
-        value: no-cache
