@@ -22,4 +22,4 @@ services:
     headers:
       - path: /*
         name: Cache-Control
-        value: no-cache 
+        value: no-cache
