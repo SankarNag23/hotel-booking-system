@@ -1,11 +1,7 @@
-from fastapi import FastAPI, Request, HTTPException, Depends, Security
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
+from flask import Flask, request, render_template, jsonify
+from flask_cors import CORS
 from pydantic import BaseModel
 from typing import List, Dict, Optional
-import uvicorn
 import os
 import logging
 from datetime import datetime, timedelta
@@ -31,24 +27,12 @@ logger = logging.getLogger(__name__)
 # Load environment variables
 load_dotenv()
 
-# Initialize FastAPI app
-app = FastAPI(
-    title="Hotel Booking System",
-    description="A modern hotel booking system with advanced features",
-    version="2.1.0"
-)
+app = Flask(__name__)
+CORS(app)
 
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[os.getenv("ALLOWED_ORIGINS", "http://localhost:8000")],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Add security headers middleware
-app.add_middleware(SecurityHeadersMiddleware)
+# Mount static files
+app.static_folder = 'static'
+app.template_folder = 'templates'
 
 # Get API keys from environment variables with validation
 BOOKING_API_KEY = os.getenv("BOOKING_API_KEY")
@@ -91,8 +75,6 @@ if not os.path.exists(index_template):
         """.strip())
 
 try:
-    # Mount static files
-    app.mount("/static", StaticFiles(directory=static_dir, html=True), name="static")
     # Initialize templates
     templates = Jinja2Templates(directory=templates_dir)
     logger.info(f"Successfully initialized static files and templates")
@@ -310,21 +292,22 @@ async def get_api_key(api_key_header: str = Security(api_key_header)):
         )
     return api_key_header
 
-@app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
+@app.route("/", methods=['GET'])
+async def read_root():
     """Render the main page with improved error handling"""
     try:
-        return templates.TemplateResponse("index.html", {"request": request})
+        return render_template("index.html")
     except Exception as e:
         logger.error(f"Error rendering index.html: {str(e)}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        return jsonify({"error": "Internal server error"}), 500
 
-@app.post("/api/search")
-async def search_hotels(request: Request, search_params: Dict):
+@app.route("/api/search", methods=['POST'])
+async def search_hotels():
     """Search for hotels with improved security and validation"""
     try:
+        data = request.get_json()
         # Sanitize and validate search parameters
-        sanitized_params = sanitize_search_params(search_params)
+        sanitized_params = sanitize_search_params(data)
         
         # Get hotels from Google Places API
         google_hotels = await hotel_provider.get_google_places_hotels(sanitized_params["destination"])
@@ -350,75 +333,75 @@ async def search_hotels(request: Request, search_params: Dict):
             safe_hotel = sanitize_log_data(hotels[0])
             logger.info(f"Sample hotel: {safe_hotel['name']} in {safe_hotel['location']}")
         
-        return {"hotels": hotels}
+        return jsonify({"hotels": hotels})
     except Exception as e:
         logger.error(f"Error searching hotels: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to search hotels")
+        return jsonify({"error": "Failed to search hotels"}), 500
 
-@app.post("/api/book")
-async def book_hotel(request: BookingRequest):
+@app.route("/api/book", methods=['POST'])
+async def book_hotel():
     """Book a hotel with enhanced security and validation"""
     try:
+        data = request.get_json()
         # Validate hotel ID
-        if not validate_hotel_id(request.hotel_id):
-            raise HTTPException(status_code=400, detail="Invalid hotel ID")
+        if not validate_hotel_id(data["hotel_id"]):
+            return jsonify({"error": "Invalid hotel ID"}), 400
         
         # Generate secure booking reference
         booking_ref = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
         
         # Log sanitized booking data
-        safe_data = sanitize_log_data(request.dict())
+        safe_data = sanitize_log_data(data)
         logger.info(f"Processing booking: {safe_data}")
         
-        return {
+        return jsonify({
             "status": "success",
             "booking": {
                 "reference": booking_ref,
-                "hotel_id": request.hotel_id,
-                "check_in": request.check_in,
-                "check_out": request.check_out,
-                "guests": request.guests,
-                "room_type": request.room_type,
-                "name": request.name,
-                "email": request.email,
-                "phone": request.phone,
-                "destination": request.destination,
-                "adults": request.adults,
-                "children": request.children,
-                "preferences": request.preferences
+                "hotel_id": data["hotel_id"],
+                "check_in": data["check_in"],
+                "check_out": data["check_out"],
+                "guests": data["guests"],
+                "room_type": data["room_type"],
+                "name": data["name"],
+                "email": data["email"],
+                "phone": data["phone"],
+                "destination": data["destination"],
+                "adults": data["adults"],
+                "children": data["children"],
+                "preferences": data["preferences"]
             }
-        }
+        })
     except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
-        raise HTTPException(status_code=400, detail=str(e))
+        return jsonify({"error": str(e)}), 400
     except Exception as e:
         logger.error(f"Error processing booking: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to process booking")
+        return jsonify({"error": "Failed to process booking"}), 500
 
-@app.get("/api/amenities")
+@app.route("/api/amenities", methods=['GET'])
 async def get_amenities():
     """Get list of available amenities"""
-    return {
+    return jsonify({
         "status": "success",
         "amenities": ui_agent.amenities
-    }
+    })
 
-@app.get("/api/room-types")
+@app.route("/api/room-types", methods=['GET'])
 async def get_room_types():
     """Get list of available room types"""
     from app.hotel_booking_system_v2 import RoomType
-    return {
+    return jsonify({
         "status": "success",
         "room_types": [{"id": rt.name, "name": rt.value} for rt in RoomType]
-    }
+    })
 
-@app.get("/health")
+@app.route("/health", methods=['GET'])
 async def health_check():
-    return {"status": "healthy", "version": "2.1"}
+    return jsonify({"status": "healthy", "version": "2.1"})
 
 if __name__ == "__main__":
-    uvicorn.run(
-        app,
+    app.run(
         host="0.0.0.0",
         port=int(os.getenv("PORT", "8000")),
         ssl_keyfile=os.getenv("SSL_KEYFILE"),
