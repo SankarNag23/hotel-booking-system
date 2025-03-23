@@ -1,6 +1,6 @@
 """
 Main entry point for the Hotel Booking System
-Version: 2.1.1
+Version: 2.1.2
 """
 
 from flask import Flask, request, render_template, jsonify
@@ -127,7 +127,7 @@ def get_room_types():
 
 @app.route("/health", methods=['GET'])
 def health_check():
-    return jsonify({"status": "healthy", "version": "2.1.1"})
+    return jsonify({"status": "healthy", "version": "2.1.2"})
 
 if __name__ == "__main__":
     app.run(
