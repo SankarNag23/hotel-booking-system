@@ -23,7 +23,6 @@ services:
         - main.py
         - app/**
         - requirements.txt
-        - templates/**
         - static/**
         - .env
     headers:
