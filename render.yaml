@@ -1,12 +1,18 @@
 services:
   - type: web
-    name: hotel-booking-system-v2
+    name: hotel-booking-system
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn main:app
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
     envVars:
-      - key: PORT
-        value: 8000
+      - key: PYTHON_VERSION
+        value: 3.9.0
+      - key: FLASK_ENV
+        value: production
+      - key: PYTHONPATH
+        value: .
+      - key: PYTHONUNBUFFERED
+        value: 1
     healthCheckPath: /health
     autoDeploy: true
     plan: free
