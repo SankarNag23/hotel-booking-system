@@ -3,16 +3,27 @@ services:
     name: hotel-booking-system-v2
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn --bind 0.0.0.0:$PORT main:app --log-level debug
+    startCommand: python app/main.py
     envVars:
       - key: PORT
         value: 8000
-      - key: PYTHON_VERSION
-        value: 3.9.0
       - key: FLASK_ENV
         value: production
-      - key: FLASK_APP
-        value: main.py
     healthCheckPath: /health
     autoDeploy: true
-    branch: main
+    plan: free
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1
+    buildFilter:
+      paths:
+        - app/**
+        - requirements.txt
+        - templates/**
+        - static/**
+        - .env
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-cache
