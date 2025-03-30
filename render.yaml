@@ -3,12 +3,14 @@ services:
     name: hotel-booking-system-v2
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: python app/main.py
+    startCommand: gunicorn app.main:app --bind 0.0.0.0:$PORT --workers 4
     envVars:
       - key: PORT
         value: 8000
       - key: FLASK_ENV
         value: production
+      - key: PYTHONPATH
+        value: .
     healthCheckPath: /health
     autoDeploy: true
     plan: free
