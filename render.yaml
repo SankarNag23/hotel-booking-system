@@ -3,7 +3,7 @@ services:
     name: hotel-booking-system
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app.hotel_booking_system_v2:app --bind 0.0.0.0:$PORT
+    startCommand: uvicorn app.hotel_booking_system_v2:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.0
