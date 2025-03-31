@@ -1,0 +1,16 @@
+{
+    "type": "web_service",
+    "name": "hotel-booking-system",
+    "ownerId": "tea-cvbknaij1k6c73dvlcf0",
+    "env": "python",
+    "buildCommand": "pip install -r requirements.txt",
+    "startCommand": "gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 1",
+    "repo": "https://github.com/SankarNag23/hotel-booking-system.git",
+    "branch": "main",
+    "serviceDetails": {
+        "env": "python",
+        "envSpecificDetails": {
+            "pythonVersion": "3.9.0"
+        }
+    }
+}
