@@ -5,7 +5,7 @@ services:
     buildCommand: |
       python -m pip install --upgrade pip
       pip install -r requirements.txt
-    startCommand: python -m gunicorn main:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120 --log-level debug
+    startCommand: python -m gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120 --log-level debug
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.0
