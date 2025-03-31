@@ -10,7 +10,24 @@ env:
   RENDER_SERVICE_ID: srv-cvdmg2ofnakc73d4tkg0
 
 jobs:
+  verify-dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+          
+      - name: Verify Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          echo "✅ Dependencies verified successfully"
+          
   deploy:
+    needs: verify-dependencies
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -18,25 +35,50 @@ jobs:
       - name: Deploy to Render
         run: |
           echo "Triggering deployment..."
-          curl -X POST https://api.render.com/v1/services/$RENDER_SERVICE_ID/deploys \
-            -H "Authorization: Bearer $RENDER_API_KEY"
+          DEPLOY_RESPONSE=$(curl -s -X POST https://api.render.com/v1/services/$RENDER_SERVICE_ID/deploys \
+            -H "Authorization: Bearer $RENDER_API_KEY")
+          DEPLOY_ID=$(echo $DEPLOY_RESPONSE | jq -r '.deploy.id')
+          echo "Deployment ID: $DEPLOY_ID"
           
       - name: Monitor Deployment Status
         run: |
           echo "Starting deployment status monitoring..."
-          while true; do
+          MAX_ATTEMPTS=60  # 30 minutes with 30-second intervals
+          ATTEMPT=1
+          
+          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
             STATUS=$(curl -s -H "Authorization: Bearer $RENDER_API_KEY" \
               "https://api.render.com/v1/services/$RENDER_SERVICE_ID/deploys" | \
               jq -r '.[0].status')
             
             if [ "$STATUS" = "live" ]; then
               echo "✅ Deployment successful!"
+              echo "::set-output name=status::success"
               exit 0
             elif [ "$STATUS" = "failed" ]; then
               echo "❌ Deployment failed!"
+              echo "::set-output name=status::failed"
               exit 1
             else
-              echo "⏳ Deployment in progress... Status: $STATUS"
+              echo "⏳ Deployment in progress... Status: $STATUS (Attempt $ATTEMPT/$MAX_ATTEMPTS)"
+              ATTEMPT=$((ATTEMPT + 1))
               sleep 30
             fi
           done
+          
+          echo "❌ Deployment timed out after 30 minutes"
+          echo "::set-output name=status::timeout"
+          exit 1
+          
+      - name: Verify Application Health
+        if: success()
+        run: |
+          echo "Verifying application health..."
+          sleep 10  # Wait for application to start
+          HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://hotel-booking-system.onrender.com/health)
+          if [ "$HEALTH_STATUS" = "200" ]; then
+            echo "✅ Application health check passed"
+          else
+            echo "❌ Application health check failed"
+            exit 1
+          fi
