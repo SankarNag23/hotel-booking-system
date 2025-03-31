@@ -46,6 +46,40 @@ def read_root():
         logger.error(f"Error rendering index.html: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500
 
+@app.route("/health", methods=['GET'])
+def health_check():
+    """Health check endpoint with detailed status"""
+    try:
+        # Check if templates directory exists
+        if not os.path.exists(app.template_folder):
+            return jsonify({
+                "status": "unhealthy",
+                "reason": "templates directory not found",
+                "version": "2.1.2"
+            }), 500
+
+        # Check if static directory exists
+        if not os.path.exists(app.static_folder):
+            return jsonify({
+                "status": "unhealthy",
+                "reason": "static directory not found",
+                "version": "2.1.2"
+            }), 500
+
+        return jsonify({
+            "status": "healthy",
+            "version": "2.1.2",
+            "timestamp": datetime.utcnow().isoformat(),
+            "environment": os.getenv("FLASK_ENV", "production")
+        })
+    except Exception as e:
+        logger.error(f"Health check failed: {str(e)}")
+        return jsonify({
+            "status": "unhealthy",
+            "reason": str(e),
+            "version": "2.1.2"
+        }), 500
+
 @app.route("/api/search", methods=['POST'])
 def search_hotels():
     """Search for hotels with improved security and validation"""
@@ -124,10 +158,6 @@ def get_room_types():
         "status": "success",
         "room_types": [{"id": rt.name, "name": rt.value} for rt in RoomType]
     })
-
-@app.route("/health", methods=['GET'])
-def health_check():
-    return jsonify({"status": "healthy", "version": "2.1.2"})
 
 @app.route('/destinations')
 def destinations():
