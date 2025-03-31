@@ -7,16 +7,14 @@ app = Flask(__name__)
 def health_check():
     return jsonify({
         "status": "healthy",
-        "version": "2.1.2",
-        "environment": os.getenv("FLASK_ENV", "production")
+        "version": "1.0.0"
     })
 
 @app.route('/')
 def home():
     return jsonify({
-        "message": "Hotel Booking System API",
-        "status": "operational"
+        "message": "Hotel Booking System API"
     })
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.getenv('PORT', 8000))) 
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 8000))) 
