@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: hotel-booking-system
+    env: python
+    buildCommand: |
+      python -m pip install --upgrade pip
+      pip install -r requirements.txt
+    startCommand: python -m gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 4 --timeout 120 --log-level info
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.0
+      - key: FLASK_ENV
+        value: production
+      - key: PYTHONPATH
+        value: .
+      - key: PYTHONUNBUFFERED
+        value: 1
+      - key: PORT
+        value: 10000
+    healthCheckPath: /health
+    autoDeploy: true
+    plan: free
+    buildFilter:
+      paths:
+        - "**/*.py"
+        - "requirements.txt"
+        - "static/**"
+        - ".env"
+        - "templates/**"
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-cache 
