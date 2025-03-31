@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="popular-destinations">
+    <h2 class="section-title">Popular Destinations</h2>
+    <div class="destinations-grid">
+        <div class="destination-card" style="background-image: url('/static/images/destinations/newyork.jpg')">
+            <div class="destination-info">
+                <h3>New York</h3>
+                <p>From $150/night</p>
+            </div>
+        </div>
+        <div class="destination-card" style="background-image: url('/static/images/destinations/london.jpg')">
+            <div class="destination-info">
+                <h3>London</h3>
+                <p>From $180/night</p>
+            </div>
+        </div>
+        <div class="destination-card" style="background-image: url('/static/images/destinations/paris.jpg')">
+            <div class="destination-info">
+                <h3>Paris</h3>
+                <p>From $200/night</p>
+            </div>
+        </div>
+        <div class="destination-card" style="background-image: url('/static/images/destinations/tokyo.jpg')">
+            <div class="destination-info">
+                <h3>Tokyo</h3>
+                <p>From $220/night</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="explore-destinations">
+    <h2 class="section-title">Explore More Destinations</h2>
+    <div class="destination-details">
+        <div class="destination-video">
+            <video autoplay muted loop playsinline>
+                <source src="/static/videos/destinations/newyork.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+        <div class="destination-content">
+            <h3>New York City</h3>
+            <p>Experience the city that never sleeps with iconic landmarks like Times Square, Central Park, and the Statue of Liberty. Enjoy world-class shopping, Broadway shows, and diverse culinary experiences.</p>
+            <div class="popular-activities">
+                <h4>Popular Activities:</h4>
+                <ul>
+                    <li>Visit Central Park and the Metropolitan Museum</li>
+                    <li>Explore Times Square and Broadway</li>
+                    <li>Tour the Statue of Liberty</li>
+                    <li>Shop on Fifth Avenue</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+.popular-destinations {
+    padding: 2rem 0;
+}
+
+.section-title {
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 2.5rem;
+    color: #333;
+}
+
+.destinations-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    padding: 0 2rem;
+}
+
+.destination-card {
+    height: 300px;
+    border-radius: 15px;
+    overflow: hidden;
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    transition: transform 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.destination-card:hover {
+    transform: translateY(-5px);
+}
+
+.destination-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1.5rem;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    color: white;
+}
+
+.destination-info h3 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.destination-info p {
+    margin: 0.5rem 0 0;
+    font-size: 1rem;
+}
+
+.explore-destinations {
+    padding: 4rem 2rem;
+}
+
+.destination-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: center;
+}
+
+.destination-video {
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.destination-video video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.destination-content {
+    padding: 2rem;
+}
+
+.destination-content h3 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.destination-content p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #666;
+    margin-bottom: 2rem;
+}
+
+.popular-activities h4 {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.popular-activities ul {
+    list-style: none;
+    padding: 0;
+}
+
+.popular-activities li {
+    font-size: 1.1rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.popular-activities li:before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #007bff;
+}
+
+@media (max-width: 1024px) {
+    .destinations-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .destination-details {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .destinations-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %} 

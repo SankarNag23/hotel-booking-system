@@ -129,6 +129,10 @@ def get_room_types():
 def health_check():
     return jsonify({"status": "healthy", "version": "2.1.2"})
 
+@app.route('/destinations')
+def destinations():
+    return render_template('destinations.html')
+
 if __name__ == "__main__":
     app.run(
         host="0.0.0.0",
