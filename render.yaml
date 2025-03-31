@@ -2,7 +2,6 @@ services:
   - type: web
     name: hotel-booking-system
     env: python
-    region: ohio
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 1
     envVars:
@@ -10,18 +9,3 @@ services:
         value: 3.9.0
       - key: FLASK_ENV
         value: production
-    healthCheckPath: /health
-    autoDeploy: true
-    plan: free
-    buildFilter:
-      paths:
-        - "**/*.py"
-        - "requirements.txt"
-        - "static/**"
-        - "templates/**"
-        - "build.sh"
-        - "start.sh"
-    headers:
-      - path: /*
-        name: Cache-Control
-        value: no-cache 
