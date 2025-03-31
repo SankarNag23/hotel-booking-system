@@ -2,21 +2,14 @@ services:
   - type: web
     name: hotel-booking-system
     env: python
-    buildCommand: chmod +x build.sh start.sh && ./build.sh
-    startCommand: ./start.sh
+    region: ohio
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 1
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.0
       - key: FLASK_ENV
         value: production
-      - key: PYTHONPATH
-        value: .
-      - key: PYTHONUNBUFFERED
-        value: "1"
-      - key: PORT
-        value: "10000"
-      - key: FLASK_APP
-        value: wsgi:app
     healthCheckPath: /health
     autoDeploy: true
     plan: free
