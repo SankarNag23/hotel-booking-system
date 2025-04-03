@@ -1,11 +1,13 @@
 #!/bin/bash
 set -e
 
-# Upgrade pip
-python -m pip install --upgrade pip
+# Create dist directory
+mkdir -p dist
 
-# Install dependencies
-pip install -r requirements.txt
+# Copy all files from public to dist
+cp -r public/* dist/
 
-# Start the application
-exec python -m gunicorn app:app --bind 0.0.0.0:$PORT --workers 4 --timeout 120 --log-level info 
+# Ensure proper permissions
+chmod -R 755 dist/
+
+echo "Static build completed successfully!" 

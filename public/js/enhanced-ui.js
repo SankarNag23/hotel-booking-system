@@ -52,6 +52,42 @@ const locationData = {
     }
 };
 
+// Update background image with enhanced transitions
+function updateBackgroundImage(location) {
+    const data = locationData[location];
+    if (data) {
+        // Create or get background container
+        let backgroundContainer = document.querySelector('.background-container');
+        if (!backgroundContainer) {
+            backgroundContainer = document.createElement('div');
+            backgroundContainer.className = 'background-container';
+            document.body.insertBefore(backgroundContainer, document.body.firstChild);
+        }
+
+        // Create temporary div for crossfade effect
+        const temp = document.createElement('div');
+        temp.className = 'absolute inset-0 bg-cover bg-center transition-opacity duration-1000';
+        temp.style.backgroundImage = `url(${data.image})`;
+        temp.style.opacity = '0';
+        backgroundContainer.appendChild(temp);
+
+        // Fade in new background
+        requestAnimationFrame(() => {
+            temp.style.opacity = '1';
+        });
+
+        // Remove old background after transition
+        setTimeout(() => {
+            const oldBackgrounds = backgroundContainer.querySelectorAll('.absolute.inset-0.bg-cover');
+            oldBackgrounds.forEach((bg, index) => {
+                if (index < oldBackgrounds.length - 1) {
+                    bg.remove();
+                }
+            });
+        }, 1000);
+    }
+}
+
 // Initialize location autocomplete with enhanced features
 function initLocationAutocomplete() {
     const locationInput = document.getElementById('location-input');
@@ -85,6 +121,14 @@ function initLocationAutocomplete() {
             const matches = Object.keys(locationData).filter(location =>
                 location.toLowerCase().includes(value)
             );
+
+            // Update background if exact match is found
+            const exactMatch = Object.keys(locationData).find(
+                location => location.toLowerCase() === value.toLowerCase()
+            );
+            if (exactMatch) {
+                updateBackgroundImage(exactMatch);
+            }
 
             autocompleteList.innerHTML = '';
             if (matches.length > 0 && value) {
@@ -173,34 +217,6 @@ function initLocationAutocomplete() {
     });
 }
 
-// Update background image with enhanced transitions
-function updateBackgroundImage(location) {
-    const data = locationData[location];
-    if (data) {
-        // Create temporary div for crossfade effect
-        const temp = document.createElement('div');
-        temp.className = 'fixed inset-0 bg-cover bg-center z-[-1] transition-opacity duration-1000';
-        temp.style.backgroundImage = `url(${data.image})`;
-        temp.style.opacity = '0';
-        document.body.appendChild(temp);
-
-        // Fade in new background
-        setTimeout(() => {
-            temp.style.opacity = '1';
-        }, 50);
-
-        // Remove old background after transition
-        setTimeout(() => {
-            const oldBackgrounds = document.querySelectorAll('.fixed.inset-0.bg-cover');
-            oldBackgrounds.forEach((bg, index) => {
-                if (index < oldBackgrounds.length - 1) {
-                    bg.remove();
-                }
-            });
-        }, 1000);
-    }
-}
-
 // Initialize all enhanced UI features
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize location autocomplete
@@ -209,11 +225,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize video cards
     initVideoCards();
     
-    // Initialize location details popup
-    initLocationDetailsPopup();
-    
     // Set initial background
     updateBackgroundImage('Maldives');
+
+    // Ensure main content wrapper exists
+    let mainContent = document.querySelector('.main-content');
+    if (!mainContent) {
+        mainContent = document.createElement('div');
+        mainContent.className = 'main-content';
+        // Wrap existing body content except background
+        while (document.body.firstChild) {
+            if (!document.body.firstChild.classList?.contains('background-container')) {
+                mainContent.appendChild(document.body.firstChild);
+            }
+        }
+        document.body.appendChild(mainContent);
+    }
 });
 
 // Initialize video cards for featured locations
@@ -225,13 +252,14 @@ function initVideoCards() {
         if (locationData[location]) {
             // Create video container
             const videoContainer = document.createElement('div');
-            videoContainer.className = 'video-container absolute inset-0 opacity-0 transition-opacity duration-300';
+            videoContainer.className = 'video-container opacity-0 transition-opacity duration-500';
             
             // Create video element
             const video = document.createElement('video');
             video.className = 'w-full h-full object-cover';
             video.muted = true;
             video.loop = true;
+            video.playsInline = true;
             video.src = locationData[location].video;
             
             videoContainer.appendChild(video);
@@ -240,12 +268,15 @@ function initVideoCards() {
             // Add hover events
             card.addEventListener('mouseenter', () => {
                 videoContainer.classList.remove('opacity-0');
-                video.play();
+                video.play().catch(() => {
+                    // Handle autoplay restriction gracefully
+                    console.log('Video autoplay prevented');
+                });
             });
             
             card.addEventListener('mouseleave', () => {
                 videoContainer.classList.add('opacity-0');
-                video.pause();
+                setTimeout(() => video.pause(), 500);
             });
             
             // Add click event for location details popup
@@ -263,37 +294,69 @@ function showLocationDetails(location) {
     
     // Create popup container
     const popup = document.createElement('div');
-    popup.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    popup.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-hidden';
     popup.innerHTML = `
-        <div class="bg-white rounded-lg p-8 max-w-2xl w-full mx-4 relative transform transition-all duration-300 scale-95 opacity-0">
-            <button class="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-white rounded-lg w-[70vw] h-[90vh] relative transform transition-all duration-300 scale-95 opacity-0 flex flex-col">
+            <button class="absolute top-4 right-4 text-white hover:text-gray-200 z-10">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
             </button>
-            <h2 class="text-3xl font-bold mb-4">${location}</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <h3 class="text-xl font-semibold mb-2">Features</h3>
-                    <ul class="list-disc list-inside space-y-1">
-                        ${data.features.map(feature => `<li>${feature}</li>`).join('')}
-                    </ul>
-                    
-                    <h3 class="text-xl font-semibold mt-4 mb-2">Must Visit Places</h3>
-                    <ul class="list-disc list-inside space-y-1">
-                        ${data.mustVisit.map(place => `<li>${place}</li>`).join('')}
-                    </ul>
+
+            <!-- Video Section (60% height) -->
+            <div class="relative h-[60%] w-full bg-black">
+                <video class="w-full h-full object-cover" autoplay loop muted playsinline>
+                    <source src="${data.video}" type="video/mp4">
+                </video>
+                <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-60"></div>
+                <div class="absolute bottom-0 left-0 right-0 p-8">
+                    <h2 class="text-4xl font-bold text-white mb-2">${location}</h2>
+                    <p class="text-xl text-white opacity-90">${data.features.join(' • ')}</p>
                 </div>
-                <div>
-                    <h3 class="text-xl font-semibold mb-2">Available Room Types</h3>
-                    ${data.rooms.map(room => `
-                        <div class="mb-4">
-                            <h4 class="font-semibold">${room.type}</h4>
-                            <ul class="list-disc list-inside space-y-1">
-                                ${room.features.map(feature => `<li class="text-sm text-gray-600">${feature}</li>`).join('')}
-                            </ul>
-                        </div>
-                    `).join('')}
+            </div>
+
+            <!-- Scrollable Content (40% height) -->
+            <div class="flex-1 overflow-y-auto p-8">
+                <!-- Must Visit Places -->
+                <div class="mb-8">
+                    <h3 class="text-2xl font-bold mb-4">Must Visit Places</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        ${data.mustVisit.map(place => `
+                            <div class="bg-gray-50 rounded-lg p-4 shadow-sm">
+                                <h4 class="font-semibold text-lg mb-2">${place}</h4>
+                                <p class="text-gray-600">Experience the beauty of ${place} in ${location}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- Available Room Types -->
+                <div class="mb-8">
+                    <h3 class="text-2xl font-bold mb-4">Luxury Accommodations</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        ${data.rooms.map(room => `
+                            <div class="bg-gray-50 rounded-lg p-6 shadow-sm">
+                                <h4 class="text-xl font-semibold mb-3">${room.type}</h4>
+                                <ul class="space-y-2">
+                                    ${room.features.map(feature => `
+                                        <li class="flex items-center text-gray-600">
+                                            <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                            ${feature}
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- Book Now Button -->
+                <div class="flex justify-center">
+                    <button class="bg-blue-600 text-white py-4 px-8 rounded-lg hover:bg-blue-700 transition-colors text-lg font-semibold shadow-lg">
+                        Book Your Stay at ${location}
+                    </button>
                 </div>
             </div>
         </div>
@@ -318,5 +381,12 @@ function showLocationDetails(location) {
     closeButton.addEventListener('click', closePopup);
     popup.addEventListener('click', (e) => {
         if (e.target === popup) closePopup();
+    });
+
+    // Start playing video
+    const video = popup.querySelector('video');
+    video.play().catch(() => {
+        // Handle autoplay restrictions gracefully
+        console.log('Autoplay prevented');
     });
 } 
