@@ -10,6 +10,7 @@
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f3f4f6;
+            transition: background-image 0.5s ease-in-out;
         }
         .hero-pattern {
             background-image: url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
@@ -21,133 +22,87 @@
                 background-position: 60% center;
             }
         }
+        .max-h-90vh {
+            max-height: 90vh;
+        }
+        video {
+            object-fit: cover;
+        }
     </style>
 </head>
-<body>
-    <!-- Navigation -->
-    <nav class="bg-white shadow-lg fixed w-full z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex">
-                    <div class="flex-shrink-0 flex items-center">
-                        <span class="text-2xl font-bold text-blue-600">HotelBook</span>
-                    </div>
-                    <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-                        <a href="#" class="border-blue-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                            Home
-                        </a>
-                        <a href="#" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                            Hotels
-                        </a>
-                        <a href="#" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                            Bookings
-                        </a>
-                        <a href="#" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                            Contact
-                        </a>
-                    </div>
-                </div>
-                <div class="hidden sm:ml-6 sm:flex sm:items-center">
-                    <button class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">
-                        Sign In
-                    </button>
-                </div>
-                <!-- Mobile menu button -->
-                <div class="flex items-center sm:hidden">
-                    <button type="button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100">
-                        <span class="sr-only">Open main menu</span>
-                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        </svg>
-                    </button>
-                </div>
+<body class="min-h-screen bg-gray-100">
+    <nav class="bg-blue-600 text-white p-4">
+        <div class="container mx-auto flex items-center justify-between">
+            <h1 class="text-2xl font-bold">Hotel Booking System</h1>
+            <div class="space-x-4">
+                <a href="#" class="hover:text-blue-200">Home</a>
+                <a href="#" class="hover:text-blue-200">About</a>
+                <a href="#" class="hover:text-blue-200">Contact</a>
             </div>
         </div>
     </nav>
 
-    <!-- Hero Section -->
-    <div class="relative hero-pattern h-screen">
-        <div class="absolute inset-0 bg-black bg-opacity-50"></div>
-        <div class="relative max-w-7xl mx-auto py-24 px-4 sm:py-32 sm:px-6 lg:px-8">
-            <h1 class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
-                Find Your Perfect Stay
-            </h1>
-            <p class="mt-6 text-xl text-white max-w-3xl">
-                Discover amazing hotels at great prices. Book your next adventure with us.
-            </p>
-            <div class="mt-10">
-                <div class="bg-white rounded-lg shadow-xl p-6 max-w-2xl">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Location</label>
-                            <input type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Check-in</label>
-                            <input type="date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Check-out</label>
-                            <input type="date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <button class="w-full bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">
-                            Search Hotels
-                        </button>
-                    </div>
+    <div class="container mx-auto px-4 py-8">
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-4">Search Hotels</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="relative">
+                    <label for="location-input" class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                    <input type="text" id="location-input" class="w-full p-2 border rounded-md" placeholder="Where are you going?">
+                </div>
+                <div>
+                    <label for="check-in" class="block text-sm font-medium text-gray-700 mb-1">Check-in Date</label>
+                    <input type="date" id="check-in" class="w-full p-2 border rounded-md">
+                </div>
+                <div>
+                    <label for="check-out" class="block text-sm font-medium text-gray-700 mb-1">Check-out Date</label>
+                    <input type="date" id="check-out" class="w-full p-2 border rounded-md">
                 </div>
             </div>
+            <div class="mt-4">
+                <button class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">Search</button>
+            </div>
         </div>
-    </div>
 
-    <!-- Featured Hotels Section -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h2 class="text-3xl font-extrabold text-gray-900">Featured Hotels</h2>
-        <div class="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2 lg:grid-cols-3 xl:gap-x-8">
+        <h2 class="text-2xl font-bold mb-4">Featured Hotels</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- Hotel Card 1 -->
-            <div class="group relative bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="group relative bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer">
                 <div class="w-full min-h-80 bg-gray-200 aspect-w-1 aspect-h-1 rounded-md overflow-hidden group-hover:opacity-75 lg:h-80 lg:aspect-none">
-                    <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80" alt="Hotel" class="w-full h-full object-center object-cover lg:w-full lg:h-full">
+                    <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945" alt="Hotel" class="w-full h-full object-center object-cover lg:w-full lg:h-full">
                 </div>
-                <div class="mt-4 flex justify-between">
+                <div class="mt-4 flex justify-between p-4">
                     <div>
-                        <h3 class="text-sm text-gray-700">
-                            Luxury Resort
-                        </h3>
-                        <p class="mt-1 text-sm text-gray-500">Maldives</p>
+                        <h3 class="text-sm text-gray-700">Maldives</h3>
+                        <p class="mt-1 text-sm text-gray-500">Luxury Resort</p>
                     </div>
                     <p class="text-sm font-medium text-gray-900">$299/night</p>
                 </div>
             </div>
 
             <!-- Hotel Card 2 -->
-            <div class="group relative bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="group relative bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer">
                 <div class="w-full min-h-80 bg-gray-200 aspect-w-1 aspect-h-1 rounded-md overflow-hidden group-hover:opacity-75 lg:h-80 lg:aspect-none">
-                    <img src="https://images.unsplash.com/photo-1582719508461-905c673771fd?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80" alt="Hotel" class="w-full h-full object-center object-cover lg:w-full lg:h-full">
+                    <img src="https://images.unsplash.com/photo-1582719508461-905c673771fd" alt="Hotel" class="w-full h-full object-center object-cover lg:w-full lg:h-full">
                 </div>
-                <div class="mt-4 flex justify-between">
+                <div class="mt-4 flex justify-between p-4">
                     <div>
-                        <h3 class="text-sm text-gray-700">
-                            Beach Villa
-                        </h3>
-                        <p class="mt-1 text-sm text-gray-500">Bali</p>
+                        <h3 class="text-sm text-gray-700">Bali</h3>
+                        <p class="mt-1 text-sm text-gray-500">Beach Villa</p>
                     </div>
                     <p class="text-sm font-medium text-gray-900">$199/night</p>
                 </div>
             </div>
 
             <!-- Hotel Card 3 -->
-            <div class="group relative bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="group relative bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer">
                 <div class="w-full min-h-80 bg-gray-200 aspect-w-1 aspect-h-1 rounded-md overflow-hidden group-hover:opacity-75 lg:h-80 lg:aspect-none">
-                    <img src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80" alt="Hotel" class="w-full h-full object-center object-cover lg:w-full lg:h-full">
+                    <img src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb" alt="Hotel" class="w-full h-full object-center object-cover lg:w-full lg:h-full">
                 </div>
-                <div class="mt-4 flex justify-between">
+                <div class="mt-4 flex justify-between p-4">
                     <div>
-                        <h3 class="text-sm text-gray-700">
-                            Mountain Lodge
-                        </h3>
-                        <p class="mt-1 text-sm text-gray-500">Swiss Alps</p>
+                        <h3 class="text-sm text-gray-700">Swiss Alps</h3>
+                        <p class="mt-1 text-sm text-gray-500">Mountain Lodge</p>
                     </div>
                     <p class="text-sm font-medium text-gray-900">$249/night</p>
                 </div>
@@ -155,62 +110,6 @@
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="bg-gray-800">
-        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <div>
-                    <h3 class="text-white text-lg font-semibold">About Us</h3>
-                    <p class="mt-4 text-gray-400">Your trusted partner in finding the perfect accommodation for your next adventure.</p>
-                </div>
-                <div>
-                    <h3 class="text-white text-lg font-semibold">Quick Links</h3>
-                    <ul class="mt-4 space-y-2">
-                        <li><a href="#" class="text-gray-400 hover:text-white">Home</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white">Hotels</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white">Bookings</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-white">Contact</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="text-white text-lg font-semibold">Contact Us</h3>
-                    <ul class="mt-4 space-y-2">
-                        <li class="text-gray-400">123 Hotel Street</li>
-                        <li class="text-gray-400">City, Country</li>
-                        <li class="text-gray-400">Phone: +1 234 567 890</li>
-                        <li class="text-gray-400">Email: info@hotelbook.com</li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="text-white text-lg font-semibold">Follow Us</h3>
-                    <div class="mt-4 flex space-x-4">
-                        <a href="#" class="text-gray-400 hover:text-white">
-                            <span class="sr-only">Facebook</span>
-                            <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"/>
-                            </svg>
-                        </a>
-                        <a href="#" class="text-gray-400 hover:text-white">
-                            <span class="sr-only">Instagram</span>
-                            <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12.315 2c2.43 0 2.784.013 3.808.09 1.064.078 1.791.217 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.387 1.363.465 2.427.067 1.067.09 1.407.09 4.123v.08c0 2.643-.012 2.987-.09 4.043-.078 1.064-.217 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.387-2.427.465-1.067.067-1.407.09-4.123.09h-.08c-2.643 0-2.987-.012-4.043-.09-1.064-.078-1.791-.217-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.387-1.363-.465-2.427-.047-1.024-.09-1.379-.09-4.123v-.08c0-2.643.012-2.987.09-4.043.078-1.064.217-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.387 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z"/>
-                            </svg>
-                        </a>
-                        <a href="#" class="text-gray-400 hover:text-white">
-                            <span class="sr-only">Twitter</span>
-                            <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84"/>
-                            </svg>
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <div class="mt-8 border-t border-gray-700 pt-8">
-                <p class="text-gray-400 text-center">&copy; 2024 HotelBook. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
-
-    <script src="/js/main.js"></script>
+    <script src="/js/enhanced-ui.js"></script>
 </body>
 </html> 
