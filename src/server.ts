@@ -14,6 +14,8 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve static files from the public directory
 app.use(express.static(path.join(__dirname, '../public')));
 
 // MongoDB connection
@@ -41,7 +43,7 @@ const hotelSchema = new mongoose.Schema({
 const Hotel = mongoose.model('Hotel', hotelSchema);
 
 // Routes
-app.get('/', (req, res) => {
+app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
