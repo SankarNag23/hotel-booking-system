@@ -3,254 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hotel Booking System</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Luxury Hotel Booking</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-            transition: background-image 0.5s ease-in-out;
-            min-height: 100vh;
-        }
         .background-overlay {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            z-index: -1;
-            background-size: cover;
-            background-position: center;
-            transition: opacity 0.5s ease-in-out;
-        }
-        .location-dropdown {
-            max-height: 200px;
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: #4B5563 #E5E7EB;
-        }
-        .location-dropdown::-webkit-scrollbar {
-            width: 6px;
-        }
-        .location-dropdown::-webkit-scrollbar-track {
-            background: #E5E7EB;
-        }
-        .location-dropdown::-webkit-scrollbar-thumb {
-            background-color: #4B5563;
-            border-radius: 3px;
-        }
-        .hotel-card {
-            transition: all 0.3s ease-in-out;
-        }
-        .hotel-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-        .video-container {
-            position: relative;
-            overflow: hidden;
-            height: 300px;
+            z-index: -2;
+            background-color: rgba(0, 0, 0, 0.4);
         }
         .video-container video {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            min-width: 100%;
-            min-height: 100%;
-            width: auto;
-            height: auto;
-            object-fit: cover;
-        }
-        .video-overlay {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.4));
-            opacity: 0;
-            transition: opacity 0.3s ease-in-out;
-        }
-        .hotel-card:hover .video-overlay {
-            opacity: 1;
-        }
-        .modal-backdrop {
-            background-color: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(4px);
+            filter: brightness(0.8);
         }
     </style>
 </head>
-<body>
-    <div id="background-container" class="background-overlay"></div>
-    
-    <nav class="bg-blue-600 bg-opacity-90 text-white p-4 shadow-lg sticky top-0 z-50">
-        <div class="container mx-auto flex items-center justify-between">
-            <h1 class="text-2xl font-bold">Hotel Booking System</h1>
-            <div class="space-x-4">
-                <a href="#" class="hover:text-blue-200 transition">Home</a>
-                <a href="#about" class="hover:text-blue-200 transition">About</a>
-                <a href="#contact" class="hover:text-blue-200 transition">Contact</a>
+<body class="min-h-screen bg-gray-100">
+    <!-- Background overlay for dynamic images -->
+    <div class="background-overlay"></div>
+
+    <!-- Navigation -->
+    <nav class="bg-white bg-opacity-90 shadow-lg sticky top-0 z-10">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-blue-600">LuxStay</h1>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#featured" class="text-gray-700 hover:text-blue-600 transition-colors">Featured</a>
+                    <a href="#about" class="text-gray-700 hover:text-blue-600 transition-colors">About</a>
+                    <a href="#contact" class="text-gray-700 hover:text-blue-600 transition-colors">Contact</a>
+                </div>
             </div>
         </div>
     </nav>
 
-    <div class="container mx-auto px-4 py-8">
-        <div class="bg-white bg-opacity-95 rounded-lg shadow-lg p-6 mb-8">
-            <h2 class="text-2xl font-bold mb-4">Search Hotels</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <!-- Search Section -->
+    <section class="py-20 px-4">
+        <div class="container mx-auto max-w-4xl bg-white bg-opacity-90 rounded-lg shadow-xl p-8">
+            <h2 class="text-4xl font-bold text-center mb-8">Find Your Perfect Stay</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="relative">
-                    <label for="location-input" class="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                    <div class="relative">
-                        <input type="text" id="location-input" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Where are you going?">
-                        <div id="location-loading" class="absolute right-2 top-1/2 transform -translate-y-1/2 hidden">
-                            <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div id="location-dropdown" class="absolute z-50 w-full mt-1 bg-white rounded-md shadow-lg hidden location-dropdown"></div>
+                    <label class="block text-gray-700 mb-2" for="location-input">Location</label>
+                    <input type="text" id="location-input" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent" placeholder="Where are you going?">
                 </div>
                 <div>
-                    <label for="check-in" class="block text-sm font-medium text-gray-700 mb-1">Check-in Date</label>
-                    <input type="date" id="check-in" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <label class="block text-gray-700 mb-2" for="check-in">Check-in</label>
+                    <input type="date" id="check-in" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent">
                 </div>
                 <div>
-                    <label for="check-out" class="block text-sm font-medium text-gray-700 mb-1">Check-out Date</label>
-                    <input type="date" id="check-out" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <label class="block text-gray-700 mb-2" for="check-out">Check-out</label>
+                    <input type="date" id="check-out" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent">
                 </div>
             </div>
-            <div class="mt-4">
-                <button class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition">Search</button>
-            </div>
+            <button class="mt-6 w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors">Search Hotels</button>
         </div>
+    </section>
 
-        <h2 class="text-2xl font-bold mb-4">Featured Hotels</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Hotel Card 1 -->
-            <div class="hotel-card group relative bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer">
-                <div class="video-container">
-                    <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945" alt="Maldives Luxury Resort" class="w-full h-full object-cover">
-                    <div class="video-overlay flex items-center justify-center">
-                        <button class="bg-white bg-opacity-90 p-3 rounded-full transform transition-transform hover:scale-110">
-                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                        </button>
+    <!-- Featured Hotels -->
+    <section id="featured" class="py-16 px-4 bg-white bg-opacity-90">
+        <div class="container mx-auto">
+            <h2 class="text-3xl font-bold text-center mb-12">Featured Destinations</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Maldives -->
+                <div class="hotel-card relative overflow-hidden rounded-lg shadow-lg cursor-pointer transform hover:scale-105 transition-transform duration-300" data-location="Maldives">
+                    <div class="aspect-w-16 aspect-h-9">
+                        <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945" alt="Maldives" class="object-cover">
+                    </div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-60"></div>
+                    <div class="absolute bottom-0 left-0 right-0 p-6">
+                        <h3 class="text-2xl font-bold text-white mb-2">Maldives</h3>
+                        <p class="text-white">Experience paradise on Earth</p>
                     </div>
                 </div>
-                <div class="mt-4 flex justify-between p-4">
-                    <div>
-                        <h3 class="text-sm text-gray-700">Maldives</h3>
-                        <p class="mt-1 text-sm text-gray-500">Luxury Resort</p>
-                    </div>
-                    <p class="text-sm font-medium text-gray-900">$299/night</p>
-                </div>
-            </div>
 
-            <!-- Hotel Card 2 -->
-            <div class="hotel-card group relative bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer">
-                <div class="video-container">
-                    <img src="https://images.unsplash.com/photo-1582719508461-905c673771fd" alt="Bali Beach Villa" class="w-full h-full object-cover">
-                    <div class="video-overlay flex items-center justify-center">
-                        <button class="bg-white bg-opacity-90 p-3 rounded-full transform transition-transform hover:scale-110">
-                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                        </button>
+                <!-- Bali -->
+                <div class="hotel-card relative overflow-hidden rounded-lg shadow-lg cursor-pointer transform hover:scale-105 transition-transform duration-300" data-location="Bali">
+                    <div class="aspect-w-16 aspect-h-9">
+                        <img src="https://images.unsplash.com/photo-1582719508461-905c673771fd" alt="Bali" class="object-cover">
+                    </div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-60"></div>
+                    <div class="absolute bottom-0 left-0 right-0 p-6">
+                        <h3 class="text-2xl font-bold text-white mb-2">Bali</h3>
+                        <p class="text-white">Discover tropical serenity</p>
                     </div>
                 </div>
-                <div class="mt-4 flex justify-between p-4">
-                    <div>
-                        <h3 class="text-sm text-gray-700">Bali</h3>
-                        <p class="mt-1 text-sm text-gray-500">Beach Villa</p>
-                    </div>
-                    <p class="text-sm font-medium text-gray-900">$199/night</p>
-                </div>
-            </div>
 
-            <!-- Hotel Card 3 -->
-            <div class="hotel-card group relative bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer">
-                <div class="video-container">
-                    <img src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb" alt="Swiss Alps Mountain Lodge" class="w-full h-full object-cover">
-                    <div class="video-overlay flex items-center justify-center">
-                        <button class="bg-white bg-opacity-90 p-3 rounded-full transform transition-transform hover:scale-110">
-                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                        </button>
+                <!-- Swiss Alps -->
+                <div class="hotel-card relative overflow-hidden rounded-lg shadow-lg cursor-pointer transform hover:scale-105 transition-transform duration-300" data-location="Swiss Alps">
+                    <div class="aspect-w-16 aspect-h-9">
+                        <img src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb" alt="Swiss Alps" class="object-cover">
                     </div>
-                </div>
-                <div class="mt-4 flex justify-between p-4">
-                    <div>
-                        <h3 class="text-sm text-gray-700">Swiss Alps</h3>
-                        <p class="mt-1 text-sm text-gray-500">Mountain Lodge</p>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-60"></div>
+                    <div class="absolute bottom-0 left-0 right-0 p-6">
+                        <h3 class="text-2xl font-bold text-white mb-2">Swiss Alps</h3>
+                        <p class="text-white">Alpine luxury awaits</p>
                     </div>
-                    <p class="text-sm font-medium text-gray-900">$249/night</p>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
     <!-- About Section -->
-    <section id="about" class="bg-white bg-opacity-95 py-12">
-        <div class="container mx-auto px-4">
-            <h2 class="text-3xl font-bold mb-6">About Us</h2>
-            <p class="text-gray-600 mb-4">Experience luxury and comfort with our carefully curated selection of hotels worldwide. From beachfront villas to mountain lodges, we offer the perfect stay for every traveler.</p>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-                <div class="p-4">
+    <section id="about" class="py-16 px-4 bg-gray-50">
+        <div class="container mx-auto max-w-4xl text-center">
+            <h2 class="text-3xl font-bold mb-8">Why Choose LuxStay?</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="p-6">
+                    <div class="text-blue-600 mb-4">
+                        <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                        </svg>
+                    </div>
                     <h3 class="text-xl font-semibold mb-2">Luxury Selection</h3>
-                    <p class="text-gray-600">Hand-picked luxury accommodations in the world's most beautiful destinations.</p>
+                    <p class="text-gray-600">Handpicked luxury properties that meet our high standards</p>
                 </div>
-                <div class="p-4">
+                <div class="p-6">
+                    <div class="text-blue-600 mb-4">
+                        <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
                     <h3 class="text-xl font-semibold mb-2">Best Price Guarantee</h3>
-                    <p class="text-gray-600">We offer competitive prices and match any lower rate you find elsewhere.</p>
+                    <p class="text-gray-600">We match any price you find online</p>
                 </div>
-                <div class="p-4">
+                <div class="p-6">
+                    <div class="text-blue-600 mb-4">
+                        <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
                     <h3 class="text-xl font-semibold mb-2">24/7 Support</h3>
-                    <p class="text-gray-600">Our dedicated support team is available around the clock to assist you.</p>
+                    <p class="text-gray-600">Our team is always here to help you</p>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Contact Section -->
-    <section id="contact" class="bg-gray-50 bg-opacity-95 py-12">
-        <div class="container mx-auto px-4">
-            <h2 class="text-3xl font-bold mb-6">Contact Us</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <section id="contact" class="py-16 px-4">
+        <div class="container mx-auto max-w-4xl bg-white rounded-lg shadow-xl p-8">
+            <h2 class="text-3xl font-bold text-center mb-8">Contact Us</h2>
+            <form class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <h3 class="text-xl font-semibold mb-4">Get in Touch</h3>
-                    <p class="text-gray-600 mb-4">Have questions about our hotels or need help with your booking? We're here to help!</p>
-                    <div class="space-y-2">
-                        <p class="text-gray-600"><strong>Email:</strong> support@hotelbooking.com</p>
-                        <p class="text-gray-600"><strong>Phone:</strong> +1 (555) 123-4567</p>
-                        <p class="text-gray-600"><strong>Hours:</strong> 24/7</p>
-                    </div>
+                    <label class="block text-gray-700 mb-2" for="name">Name</label>
+                    <input type="text" id="name" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent" required>
                 </div>
                 <div>
-                    <form class="space-y-4">
-                        <div>
-                            <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                            <input type="text" id="name" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                        <div>
-                            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                            <input type="email" id="email" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                        <div>
-                            <label for="message" class="block text-sm font-medium text-gray-700 mb-1">Message</label>
-                            <textarea id="message" rows="4" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
-                        </div>
-                        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition">Send Message</button>
-                    </form>
+                    <label class="block text-gray-700 mb-2" for="email">Email</label>
+                    <input type="email" id="email" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent" required>
                 </div>
-            </div>
+                <div class="md:col-span-2">
+                    <label class="block text-gray-700 mb-2" for="message">Message</label>
+                    <textarea id="message" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent" required></textarea>
+                </div>
+                <div class="md:col-span-2">
+                    <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors">Send Message</button>
+                </div>
+            </form>
         </div>
     </section>
 
-    <script src="/js/enhanced-ui.js"></script>
+    <script src="js/enhanced-ui.js"></script>
 </body>
 </html> 

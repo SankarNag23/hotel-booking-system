@@ -201,116 +201,96 @@ function updateBackgroundImage(location) {
     }
 }
 
-// Convert featured hotel cards to video cards with enhanced loading
+// Initialize all enhanced UI features
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize location autocomplete
+    initLocationAutocomplete();
+    
+    // Initialize video cards
+    initVideoCards();
+    
+    // Initialize location details popup
+    initLocationDetailsPopup();
+    
+    // Set initial background
+    updateBackgroundImage('Maldives');
+});
+
+// Initialize video cards for featured locations
 function initVideoCards() {
     const hotelCards = document.querySelectorAll('.hotel-card');
+    
     hotelCards.forEach(card => {
-        const location = card.querySelector('h3').textContent.trim();
-        const data = locationData[location];
-        if (data) {
-            // Create video container with loading state
-            const imgContainer = card.querySelector('.aspect-w-1');
+        const location = card.getAttribute('data-location');
+        if (locationData[location]) {
+            // Create video container
             const videoContainer = document.createElement('div');
-            videoContainer.className = 'relative w-full h-full';
+            videoContainer.className = 'video-container absolute inset-0 opacity-0 transition-opacity duration-300';
             
-            // Add loading spinner
-            const spinner = document.createElement('div');
-            spinner.className = 'absolute inset-0 flex items-center justify-center bg-gray-100';
-            spinner.innerHTML = `
-                <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-            `;
-            
-            // Create and configure video element
+            // Create video element
             const video = document.createElement('video');
-            video.className = 'w-full h-full object-cover opacity-0 transition-opacity duration-500';
-            video.loop = true;
+            video.className = 'w-full h-full object-cover';
             video.muted = true;
-            video.playsInline = true;
-            video.src = data.video;
+            video.loop = true;
+            video.src = locationData[location].video;
             
-            // Handle video loading
-            video.addEventListener('loadeddata', () => {
-                video.play().then(() => {
-                    spinner.remove();
-                    video.style.opacity = '1';
-                }).catch(console.error);
-            });
-            
-            // Add fallback for video error
-            video.addEventListener('error', () => {
-                const fallbackImg = document.createElement('img');
-                fallbackImg.src = data.image;
-                fallbackImg.className = 'w-full h-full object-cover';
-                videoContainer.innerHTML = '';
-                videoContainer.appendChild(fallbackImg);
-            });
-            
-            // Assemble video container
-            videoContainer.appendChild(spinner);
             videoContainer.appendChild(video);
-            imgContainer.innerHTML = '';
-            imgContainer.appendChild(videoContainer);
-
-            // Add hover effect for video controls
-            const controls = document.createElement('div');
-            controls.className = 'absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-opacity duration-200 flex items-center justify-center opacity-0 hover:opacity-100';
-            controls.innerHTML = `
-                <button class="p-2 bg-white rounded-full shadow-lg transform hover:scale-110 transition-transform duration-200">
-                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                </button>
-            `;
-            videoContainer.appendChild(controls);
-
-            // Add click handler for details popup
-            controls.addEventListener('click', (e) => {
-                e.stopPropagation();
+            card.appendChild(videoContainer);
+            
+            // Add hover events
+            card.addEventListener('mouseenter', () => {
+                videoContainer.classList.remove('opacity-0');
+                video.play();
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                videoContainer.classList.add('opacity-0');
+                video.pause();
+            });
+            
+            // Add click event for location details popup
+            card.addEventListener('click', () => {
                 showLocationDetails(location);
             });
         }
     });
 }
 
-// Show location details popup with enhanced animations
+// Initialize and show location details popup
 function showLocationDetails(location) {
     const data = locationData[location];
     if (!data) return;
-
+    
+    // Create popup container
     const popup = document.createElement('div');
-    popup.className = 'fixed inset-0 bg-black bg-opacity-0 flex items-center justify-center z-50 opacity-0 transition-all duration-300';
+    popup.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
     popup.innerHTML = `
-        <div class="bg-white rounded-lg p-8 max-w-2xl w-full mx-4 max-h-90vh overflow-auto transform translate-y-4 transition-transform duration-300">
-            <div class="flex justify-between items-start">
-                <h2 class="text-2xl font-bold mb-4">${location}</h2>
-                <button class="text-gray-500 hover:text-gray-700 transition-colors duration-200" onclick="this.closest('.fixed').remove()">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
+        <div class="bg-white rounded-lg p-8 max-w-2xl w-full mx-4 relative transform transition-all duration-300 scale-95 opacity-0">
+            <button class="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            <h2 class="text-3xl font-bold mb-4">${location}</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <h3 class="font-bold mb-2">Features</h3>
-                    <ul class="list-disc pl-5 mb-4 space-y-2">
-                        ${data.features.map(f => `<li class="text-gray-700">${f}</li>`).join('')}
+                    <h3 class="text-xl font-semibold mb-2">Features</h3>
+                    <ul class="list-disc list-inside space-y-1">
+                        ${data.features.map(feature => `<li>${feature}</li>`).join('')}
                     </ul>
-                    <h3 class="font-bold mb-2">Must Visit</h3>
-                    <ul class="list-disc pl-5 space-y-2">
-                        ${data.mustVisit.map(m => `<li class="text-gray-700">${m}</li>`).join('')}
+                    
+                    <h3 class="text-xl font-semibold mt-4 mb-2">Must Visit Places</h3>
+                    <ul class="list-disc list-inside space-y-1">
+                        ${data.mustVisit.map(place => `<li>${place}</li>`).join('')}
                     </ul>
                 </div>
                 <div>
-                    <h3 class="font-bold mb-2">Available Rooms</h3>
+                    <h3 class="text-xl font-semibold mb-2">Available Room Types</h3>
                     ${data.rooms.map(room => `
-                        <div class="mb-4 p-4 bg-gray-50 rounded-lg">
-                            <h4 class="font-semibold text-blue-600">${room.type}</h4>
-                            <ul class="list-disc pl-5 mt-2 space-y-1">
-                                ${room.features.map(f => `<li class="text-gray-700">${f}</li>`).join('')}
+                        <div class="mb-4">
+                            <h4 class="font-semibold">${room.type}</h4>
+                            <ul class="list-disc list-inside space-y-1">
+                                ${room.features.map(feature => `<li class="text-sm text-gray-600">${feature}</li>`).join('')}
                             </ul>
                         </div>
                     `).join('')}
@@ -318,34 +298,25 @@ function showLocationDetails(location) {
             </div>
         </div>
     `;
+    
     document.body.appendChild(popup);
-
-    // Trigger animations
+    
+    // Animate popup entrance
     requestAnimationFrame(() => {
-        popup.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-        popup.style.opacity = '1';
-        popup.querySelector('.transform').style.transform = 'translateY(0)';
+        const content = popup.querySelector('div');
+        content.classList.remove('scale-95', 'opacity-0');
     });
-
-    // Add close on escape key
-    const handleEscape = (e) => {
-        if (e.key === 'Escape') {
-            popup.remove();
-            document.removeEventListener('keydown', handleEscape);
-        }
+    
+    // Add close functionality
+    const closeButton = popup.querySelector('button');
+    const closePopup = () => {
+        const content = popup.querySelector('div');
+        content.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => popup.remove(), 300);
     };
-    document.addEventListener('keydown', handleEscape);
-
-    // Add close on background click
+    
+    closeButton.addEventListener('click', closePopup);
     popup.addEventListener('click', (e) => {
-        if (e.target === popup) {
-            popup.remove();
-        }
+        if (e.target === popup) closePopup();
     });
-}
-
-// Initialize enhanced UI features
-document.addEventListener('DOMContentLoaded', () => {
-    initLocationAutocomplete();
-    initVideoCards();
-}); 
+} 
