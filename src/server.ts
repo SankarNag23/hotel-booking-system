@@ -1,7 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import mongoose from 'mongoose';
 import path from 'path';
 
 // Load environment variables
@@ -9,6 +8,40 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+// In-memory hotel data
+const hotels = [
+    {
+        id: '1',
+        name: 'Luxury Resort',
+        location: 'Maldives',
+        description: 'Experience luxury in paradise',
+        price: 299,
+        rating: 4.8,
+        images: ['https://images.unsplash.com/photo-1566073771259-6a8506099945'],
+        amenities: ['Pool', 'Spa', 'Beach Access', 'Fine Dining']
+    },
+    {
+        id: '2',
+        name: 'Beach Villa',
+        location: 'Bali',
+        description: 'Beachfront villa with stunning views',
+        price: 199,
+        rating: 4.5,
+        images: ['https://images.unsplash.com/photo-1582719508461-905c673771fd'],
+        amenities: ['Private Beach', 'Pool', 'Kitchen', 'WiFi']
+    },
+    {
+        id: '3',
+        name: 'Mountain Lodge',
+        location: 'Swiss Alps',
+        description: 'Cozy mountain retreat with breathtaking views',
+        price: 249,
+        rating: 4.7,
+        images: ['https://images.unsplash.com/photo-1542314831-068cd1dbfeeb'],
+        amenities: ['Fireplace', 'Ski Access', 'Hot Tub', 'Restaurant']
+    }
+];
 
 // Middleware
 app.use(cors());
@@ -18,67 +51,30 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, '../public')));
 
-// MongoDB connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/hotel-booking';
-mongoose.connect(MONGODB_URI)
-    .then(() => console.log('Connected to MongoDB'))
-    .catch((err) => console.error('MongoDB connection error:', err));
-
-// Hotel Schema
-const hotelSchema = new mongoose.Schema({
-    name: String,
-    location: String,
-    description: String,
-    price: Number,
-    rating: Number,
-    images: [String],
-    amenities: [String],
-    rooms: [{
-        type: String,
-        price: Number,
-        capacity: Number
-    }]
+// API Routes
+app.get('/api/hotels', (req, res) => {
+    res.json(hotels);
 });
 
-const Hotel = mongoose.model('Hotel', hotelSchema);
+app.get('/api/hotels/:id', (req, res) => {
+    const hotel = hotels.find(h => h.id === req.params.id);
+    if (!hotel) {
+        return res.status(404).json({ error: 'Hotel not found' });
+    }
+    res.json(hotel);
+});
 
-// Routes
+app.post('/api/hotels/search', (req, res) => {
+    const { location, checkIn, checkOut } = req.body;
+    const filteredHotels = hotels.filter(hotel => 
+        hotel.location.toLowerCase().includes(location.toLowerCase())
+    );
+    res.json(filteredHotels);
+});
+
+// Serve index.html for all other routes (client-side routing)
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/index.html'));
-});
-
-// API Routes
-app.get('/api/hotels', async (req, res) => {
-    try {
-        const hotels = await Hotel.find();
-        res.json(hotels);
-    } catch (error) {
-        res.status(500).json({ error: 'Error fetching hotels' });
-    }
-});
-
-app.get('/api/hotels/:id', async (req, res) => {
-    try {
-        const hotel = await Hotel.findById(req.params.id);
-        if (!hotel) {
-            return res.status(404).json({ error: 'Hotel not found' });
-        }
-        res.json(hotel);
-    } catch (error) {
-        res.status(500).json({ error: 'Error fetching hotel' });
-    }
-});
-
-app.post('/api/hotels/search', async (req, res) => {
-    try {
-        const { location, checkIn, checkOut } = req.body;
-        const hotels = await Hotel.find({
-            location: { $regex: location, $options: 'i' }
-        });
-        res.json(hotels);
-    } catch (error) {
-        res.status(500).json({ error: 'Error searching hotels' });
-    }
 });
 
 // Error handling middleware
