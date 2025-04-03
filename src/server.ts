@@ -14,6 +14,11 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'healthy', timestamp: new Date().toISOString() });
+});
+
 // Serve static files from the public directory
 const publicPath = path.join(__dirname, '../public');
 app.use(express.static(publicPath));
@@ -99,4 +104,5 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
     console.log(`Serving static files from: ${publicPath}`);
+    console.log(`Environment: ${process.env.NODE_ENV}`);
 }); 
