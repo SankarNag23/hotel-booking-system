@@ -1,67 +1,114 @@
 # Hotel Booking System
 
-A modern hotel booking system built with Flask and Bootstrap. Features include hotel search, filtering, real-time availability, and instant booking confirmation.
+A modern, responsive hotel booking system built with Node.js, Express, TypeScript, and MongoDB. The frontend is designed with Tailwind CSS for a beautiful and mobile-friendly user interface.
 
 ## Features
 
-- Modern, responsive UI with Bootstrap 5
+- Responsive design that works on all devices
 - Real-time hotel search and filtering
-- Interactive date selection
-- Instant booking confirmation
-- Room availability tracking
-- Booking management system
+- User authentication and authorization
+- Secure booking system
+- Admin dashboard for hotel management
+- RESTful API architecture
 
-## Deployment on Render.com
+## Prerequisites
 
-1. Fork or clone this repository to your GitHub account
-2. Go to [Render.com](https://render.com) and sign up/login
-3. Click "New +" and select "Web Service"
-4. Connect your GitHub repository
-5. Fill in the following details:
-   - Name: hotel-booking-system
-   - Environment: Python 3
-   - Build Command: `pip install -r requirements.txt`
-   - Start Command: `gunicorn app:app`
-6. Click "Create Web Service"
+- Node.js (v14 or higher)
+- MongoDB (v4.4 or higher)
+- npm or yarn package manager
 
-The application will be automatically deployed and available at your Render URL.
+## Installation
 
-## Environment Variables
-
-Set the following environment variables in Render.com dashboard:
-- `FLASK_ENV`: Set to 'production' for production deployment
-- `SECRET_KEY`: Your secret key for session management
-
-## Local Development
-
-1. Create a virtual environment:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/hotel-booking-system.git
+cd hotel-booking-system
+```
 
 2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+```bash
+npm install
+```
 
-3. Run the application:
-   ```bash
-   python app.py
-   ```
+3. Create a `.env` file in the root directory and add the following variables:
+```env
+PORT=3000
+MONGODB_URI=mongodb://localhost:27017/hotel-booking
+NODE_ENV=development
+```
 
-4. Visit http://localhost:5000 in your browser
+4. Start MongoDB:
+```bash
+# On Windows
+net start MongoDB
+
+# On macOS/Linux
+sudo service mongod start
+```
+
+## Development
+
+1. Start the development server:
+```bash
+npm run dev
+```
+
+2. Build the project:
+```bash
+npm run build
+```
+
+3. Run tests:
+```bash
+npm test
+```
+
+## Project Structure
+
+```
+hotel-booking-system/
+├── src/
+│   ├── server.ts
+│   ├── models/
+│   ├── routes/
+│   └── controllers/
+├── public/
+│   ├── index.html
+│   ├── css/
+│   └── js/
+├── tests/
+├── package.json
+├── tsconfig.json
+└── .env
+```
 
 ## API Endpoints
 
-- `GET /api/hotels` - List all available hotels with filtering options
-- `POST /api/book` - Create a new booking
-- `GET /api/bookings/<booking_id>` - Get booking details
+### Hotels
+- `GET /api/hotels` - Get all hotels
+- `GET /api/hotels/:id` - Get hotel by ID
+- `POST /api/hotels/search` - Search hotels by location and dates
+
+### Bookings
+- `POST /api/bookings` - Create a new booking
+- `GET /api/bookings/:id` - Get booking by ID
+- `PUT /api/bookings/:id` - Update booking
+- `DELETE /api/bookings/:id` - Cancel booking
 
 ## Contributing
 
 1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a new Pull Request 
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- [Tailwind CSS](https://tailwindcss.com/) for the beautiful UI components
+- [MongoDB](https://www.mongodb.com/) for the database
+- [Express](https://expressjs.com/) for the web framework 
