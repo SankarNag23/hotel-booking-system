@@ -9,6 +9,26 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Serve static files from the public directory
+const publicPath = path.join(__dirname, '../public');
+app.use(express.static(publicPath));
+app.use('/js', express.static(path.join(publicPath, 'js')));
+app.use('/css', express.static(path.join(publicPath, 'css')));
+app.use('/images', express.static(path.join(publicPath, 'images')));
+
+// Log static file requests in development
+if (process.env.NODE_ENV === 'development') {
+    app.use((req, res, next) => {
+        console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+        next();
+    });
+}
+
 // In-memory hotel data
 const hotels = [
     {
@@ -43,14 +63,6 @@ const hotels = [
     }
 ];
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Serve static files from the public directory
-app.use(express.static(path.join(__dirname, '../public')));
-
 // API Routes
 app.get('/api/hotels', (req, res) => {
     res.json(hotels);
@@ -74,7 +86,7 @@ app.post('/api/hotels/search', (req, res) => {
 
 // Serve index.html for all other routes (client-side routing)
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/index.html'));
+    res.sendFile(path.join(publicPath, 'index.html'));
 });
 
 // Error handling middleware
@@ -86,4 +98,5 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 // Start server
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
+    console.log(`Serving static files from: ${publicPath}`);
 }); 

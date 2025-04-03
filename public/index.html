@@ -11,6 +11,7 @@
             font-family: 'Inter', sans-serif;
             background-color: #f3f4f6;
             transition: background-image 0.5s ease-in-out;
+            min-height: 100vh;
         }
         .hero-pattern {
             background-image: url('https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
@@ -28,16 +29,27 @@
         video {
             object-fit: cover;
         }
+        .hotel-card {
+            transition: transform 0.3s ease-in-out;
+        }
+        .hotel-card:hover {
+            transform: translateY(-5px);
+        }
+        .featured-image {
+            height: 300px;
+            object-fit: cover;
+            width: 100%;
+        }
     </style>
 </head>
 <body class="min-h-screen bg-gray-100">
-    <nav class="bg-blue-600 text-white p-4">
+    <nav class="bg-blue-600 text-white p-4 shadow-lg">
         <div class="container mx-auto flex items-center justify-between">
             <h1 class="text-2xl font-bold">Hotel Booking System</h1>
             <div class="space-x-4">
-                <a href="#" class="hover:text-blue-200">Home</a>
-                <a href="#" class="hover:text-blue-200">About</a>
-                <a href="#" class="hover:text-blue-200">Contact</a>
+                <a href="#" class="hover:text-blue-200 transition">Home</a>
+                <a href="#" class="hover:text-blue-200 transition">About</a>
+                <a href="#" class="hover:text-blue-200 transition">Contact</a>
             </div>
         </div>
     </nav>
@@ -48,28 +60,28 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="relative">
                     <label for="location-input" class="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                    <input type="text" id="location-input" class="w-full p-2 border rounded-md" placeholder="Where are you going?">
+                    <input type="text" id="location-input" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Where are you going?">
                 </div>
                 <div>
                     <label for="check-in" class="block text-sm font-medium text-gray-700 mb-1">Check-in Date</label>
-                    <input type="date" id="check-in" class="w-full p-2 border rounded-md">
+                    <input type="date" id="check-in" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 </div>
                 <div>
                     <label for="check-out" class="block text-sm font-medium text-gray-700 mb-1">Check-out Date</label>
-                    <input type="date" id="check-out" class="w-full p-2 border rounded-md">
+                    <input type="date" id="check-out" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 </div>
             </div>
             <div class="mt-4">
-                <button class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">Search</button>
+                <button class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition">Search</button>
             </div>
         </div>
 
         <h2 class="text-2xl font-bold mb-4">Featured Hotels</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- Hotel Card 1 -->
-            <div class="group relative bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer">
+            <div class="hotel-card group relative bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer">
                 <div class="w-full min-h-80 bg-gray-200 aspect-w-1 aspect-h-1 rounded-md overflow-hidden group-hover:opacity-75 lg:h-80 lg:aspect-none">
-                    <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945" alt="Hotel" class="w-full h-full object-center object-cover lg:w-full lg:h-full">
+                    <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945" alt="Maldives Luxury Resort" class="featured-image">
                 </div>
                 <div class="mt-4 flex justify-between p-4">
                     <div>
@@ -81,9 +93,9 @@
             </div>
 
             <!-- Hotel Card 2 -->
-            <div class="group relative bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer">
+            <div class="hotel-card group relative bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer">
                 <div class="w-full min-h-80 bg-gray-200 aspect-w-1 aspect-h-1 rounded-md overflow-hidden group-hover:opacity-75 lg:h-80 lg:aspect-none">
-                    <img src="https://images.unsplash.com/photo-1582719508461-905c673771fd" alt="Hotel" class="w-full h-full object-center object-cover lg:w-full lg:h-full">
+                    <img src="https://images.unsplash.com/photo-1582719508461-905c673771fd" alt="Bali Beach Villa" class="featured-image">
                 </div>
                 <div class="mt-4 flex justify-between p-4">
                     <div>
@@ -95,9 +107,9 @@
             </div>
 
             <!-- Hotel Card 3 -->
-            <div class="group relative bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer">
+            <div class="hotel-card group relative bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer">
                 <div class="w-full min-h-80 bg-gray-200 aspect-w-1 aspect-h-1 rounded-md overflow-hidden group-hover:opacity-75 lg:h-80 lg:aspect-none">
-                    <img src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb" alt="Hotel" class="w-full h-full object-center object-cover lg:w-full lg:h-full">
+                    <img src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb" alt="Swiss Alps Mountain Lodge" class="featured-image">
                 </div>
                 <div class="mt-4 flex justify-between p-4">
                     <div>

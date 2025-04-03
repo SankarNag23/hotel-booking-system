@@ -1,12 +1,13 @@
 {
   "name": "hotel-booking-system",
   "version": "1.0.0",
-  "description": "Modern hotel booking system with Node.js and TypeScript",
+  "description": "A modern hotel booking system with enhanced UI features",
   "main": "dist/server.js",
   "scripts": {
     "start": "node dist/server.js",
-    "dev": "nodemon src/server.ts",
-    "build": "node build.js && tsc",
+    "dev": "NODE_ENV=development nodemon src/server.ts",
+    "build": "tsc",
+    "watch": "tsc -w",
     "test": "jest"
   },
   "dependencies": {
