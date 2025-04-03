@@ -2,8 +2,10 @@ services:
   - type: web
     name: hotel-booking-system
     runtime: node
-    buildCommand: npm install && npm run build
-    startCommand: npm start
+    buildCommand: |
+      npm install
+      npm run build
+    startCommand: node dist/server.js
     envVars:
       - key: NODE_ENV
         value: production
@@ -15,3 +17,9 @@ services:
         source: /*
         destination: /index.html
     healthCheckPath: /api/health
+    buildFilter:
+      paths:
+        - src/**/*.ts
+        - public/**/*
+        - package.json
+        - tsconfig.json
