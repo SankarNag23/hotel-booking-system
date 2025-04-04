@@ -21,10 +21,11 @@ app.get('/api/health', (req, res) => {
 
 // Serve static files from the public directory
 const publicPath = path.join(__dirname, '../public');
-app.use(express.static(publicPath));
-app.use('/js', express.static(path.join(publicPath, 'js')));
-app.use('/css', express.static(path.join(publicPath, 'css')));
-app.use('/images', express.static(path.join(publicPath, 'images')));
+app.use(express.static(publicPath, {
+    maxAge: '0',
+    etag: true,
+    lastModified: true
+}));
 
 // Log static file requests in development
 if (process.env.NODE_ENV === 'development') {
@@ -91,7 +92,13 @@ app.post('/api/hotels/search', (req, res) => {
 
 // Serve index.html for all other routes (client-side routing)
 app.get('*', (req, res) => {
-    res.sendFile(path.join(publicPath, 'index.html'));
+    res.sendFile(path.join(publicPath, 'index.html'), {
+        headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+        }
+    });
 });
 
 // Error handling middleware
