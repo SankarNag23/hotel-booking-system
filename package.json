@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "serve -s public",
-    "build": "mkdir -p dist && cp -r public/* dist/"
+    "build": "mkdir -p dist && cp -r public/*.html public/*.js public/*.css public/images public/assets dist/ 2>/dev/null || true"
   },
   "dependencies": {
     "serve": "^14.2.1"
