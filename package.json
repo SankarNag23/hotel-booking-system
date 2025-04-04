@@ -4,8 +4,8 @@
   "description": "Luxury Hotel Booking System",
   "main": "index.js",
   "scripts": {
-    "start": "serve dist",
-    "build": "bash ./build.sh"
+    "start": "serve -s public",
+    "build": "cp -r public/* dist/"
   },
   "dependencies": {
     "serve": "^14.2.1"

@@ -2,10 +2,10 @@ services:
   - type: static
     name: hotel-booking-system
     buildCommand: npm install && npm run build
-    publishPath: dist
+    staticPublishPath: ./dist
     envVars:
       - key: NODE_VERSION
-        value: 18.x
+        value: 18.0.0
     headers:
       - path: /*
         name: Cache-Control
@@ -14,11 +14,3 @@ services:
       - type: rewrite
         source: /*
         destination: /index.html
-    autoDeploy: true
-    healthCheckPath: /api/health
-    buildFilter:
-      paths:
-        - src/**/*.ts
-        - public/**/*
-        - package.json
-        - tsconfig.json
