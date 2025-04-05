@@ -2,12 +2,14 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
+import VoucherAgent from './voucherAgent';
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
+const voucherAgent = VoucherAgent.getInstance();
 
 // Middleware
 app.use(cors());
@@ -34,6 +36,41 @@ if (process.env.NODE_ENV === 'development') {
         next();
     });
 }
+
+// Voucher endpoints
+app.get('/api/vouchers', async (req, res) => {
+    try {
+        const forceRefresh = req.query.refresh === 'true';
+        const vouchers = await voucherAgent.getVouchers(forceRefresh);
+        res.json(vouchers);
+    } catch (error: any) {
+        console.error('Error fetching vouchers:', error);
+        res.status(500).json({ error: 'Failed to fetch vouchers' });
+    }
+});
+
+app.post('/api/vouchers/:id/reveal', async (req, res) => {
+    try {
+        const { userId } = req.body;
+        if (!userId) {
+            return res.status(401).json({ error: 'Authentication required' });
+        }
+
+        const voucherCode = await voucherAgent.revealVoucher(req.params.id, userId);
+        if (!voucherCode) {
+            return res.status(404).json({ error: 'Voucher not found' });
+        }
+
+        res.json({ code: voucherCode });
+    } catch (error: any) {
+        if (error.message === 'User authentication required') {
+            res.status(401).json({ error: 'Authentication required' });
+        } else {
+            console.error('Error revealing voucher:', error);
+            res.status(500).json({ error: 'Failed to reveal voucher' });
+        }
+    }
+});
 
 // In-memory hotel data
 const hotels = [

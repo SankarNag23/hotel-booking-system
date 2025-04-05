@@ -1,18 +1,21 @@
 services:
   - type: web
     name: hotel-booking-system
-    buildCommand: npm install && npm run build
+    env: node
+    buildCommand: npm install
     startCommand: npm start
-    staticPublishPath: ./dist
     envVars:
       - key: NODE_VERSION
         value: 18.0.0
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
     headers:
       - path: /*
         name: Cache-Control
-        value: public, max-age=0, must-revalidate
+        value: no-cache
     routes:
       - type: rewrite
         source: /*
         destination: /index.html
-    env: node
