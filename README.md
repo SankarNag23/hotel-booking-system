@@ -25,12 +25,30 @@ A modern, user-friendly hotel booking system with advanced features and real-tim
    - Environment Variables:
      - `BOOKING_API_KEY`: Your Booking.com API key (if using real API)
 
+## GitHub Codespaces (Recommended)
+
+The easiest way to run this application is using GitHub Codespaces:
+
+1. Click the green "Code" button on the GitHub repository
+2. Select the "Codespaces" tab
+3. Click "Create codespace on main" (or your preferred branch)
+4. Wait for the environment to build (dependencies will be installed automatically)
+5. Once ready, run the application:
+   ```bash
+   python main.py
+   ```
+6. The application will be available on port 8000
+7. GitHub Codespaces will automatically forward the port - click the pop-up notification to open the app in your browser
+8. Or go to the "Ports" tab in VS Code and click the globe icon next to port 8000
+
+**Note:** The application runs on port 8000 (not 5173). Port 5173 is used by Vite dev servers, but this is a Flask application.
+
 ## Local Development
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/Automated-Hotel-Booking-Agents.git
-cd Automated-Hotel-Booking-Agents
+git clone https://github.com/SankarNag23/hotel-booking-system.git
+cd hotel-booking-system
 ```
 
 2. Install dependencies:
@@ -40,7 +58,12 @@ pip install -r requirements.txt
 
 3. Run the application:
 ```bash
-python hotel_booking_system_v2.py
+python main.py
+```
+
+4. Open your browser and navigate to:
+```
+http://localhost:8000
 ```
 
 ## Output Validation
