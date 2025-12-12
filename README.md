@@ -33,7 +33,11 @@ The easiest way to run this application is using GitHub Codespaces:
 2. Select the "Codespaces" tab
 3. Click "Create codespace on main" (or your preferred branch)
 4. Wait for the environment to build (dependencies will be installed automatically)
-5. Once ready, run the application:
+5. Once ready, run the application using the provided script:
+   ```bash
+   ./run_dev.sh
+   ```
+   Or manually:
    ```bash
    python main.py
    ```
@@ -56,7 +60,12 @@ cd hotel-booking-system
 pip install -r requirements.txt
 ```
 
-3. Run the application:
+3. Run the application using the provided script:
+```bash
+./run_dev.sh
+```
+
+Or manually:
 ```bash
 python main.py
 ```
@@ -90,6 +99,30 @@ The system validates the following key points:
    - Hotel must meet minimum star rating
    - Hotel must have all requested amenities
    - Price must be within specified range
+
+## Troubleshooting
+
+### Issue: URL shows 404 error in GitHub Codespaces
+
+**Solution:**
+1. Make sure you're running the Flask application with `python main.py`
+2. The application runs on port **8000**, not port 5173 (which is used by Vite dev servers)
+3. Check the "Ports" tab in VS Code to see if port 8000 is being forwarded
+4. If the port isn't forwarded automatically, you can manually forward it:
+   - Go to the "Ports" tab in VS Code
+   - Click "Forward a Port"
+   - Enter "8000"
+   - Click the globe icon next to port 8000 to open it in your browser
+
+### Issue: Dependencies not installed
+
+**Solution:**
+Run `pip install -r requirements.txt` to install all required dependencies.
+
+### Issue: Application won't start - API key error
+
+**Solution:**
+The application works without an API key (it will use mock data). If you see warnings about "Booking.com API key not provided", you can safely ignore them for development purposes.
 
 ## Testing
 
