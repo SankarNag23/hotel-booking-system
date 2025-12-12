@@ -10,20 +10,21 @@ from enum import Enum
 import logging
 import random
 import string
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
+# Legacy FastAPI imports - not used in Flask version
+# from fastapi import FastAPI, HTTPException
+# from fastapi.middleware.cors import CORSMiddleware
 
-# Initialize FastAPI app
-app = FastAPI(title="Hotel Booking System API")
+# Initialize FastAPI app - not used in Flask version
+# app = FastAPI(title="Hotel Booking System API")
 
-# Configure CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Configure CORS - handled by Flask-CORS in main.py
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -287,8 +288,9 @@ class BookingAPIAgent:
     def __init__(self, api_key: str = None):
         self.api_key = api_key or os.environ.get("BOOKING_API_KEY")
         if not self.api_key:
-            raise ValueError("Booking.com API key is required. Set it in the environment variable BOOKING_API_KEY or pass it to the constructor.")
-        logger.info("BookingAPIAgent initialized successfully")
+            logger.warning("Booking.com API key not provided. Using mock data only.")
+        else:
+            logger.info("BookingAPIAgent initialized successfully with API key")
     
     def search_hotels(self, booking_details: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
@@ -367,8 +369,9 @@ class IntegrationAgent:
     def __init__(self, api_key: str = None):
         self.api_key = api_key or os.environ.get("BOOKING_API_KEY")
         if not self.api_key:
-            raise ValueError("Booking.com API key is required. Set it in the environment variable BOOKING_API_KEY or pass it to the constructor.")
-        logger.info("IntegrationAgent initialized successfully")
+            logger.warning("Booking.com API key not provided. Using mock data only.")
+        else:
+            logger.info("IntegrationAgent initialized successfully with API key")
     
     def process_booking(self, hotel_id: str, booking_details: Dict[str, Any]) -> Dict[str, Any]:
         """

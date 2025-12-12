@@ -14,7 +14,6 @@ import httpx
 from app.hotel_booking_system_v2 import UserInterfaceAgent, BookingAPIAgent, IntegrationAgent
 from dotenv import load_dotenv
 from app.hotel_providers import HotelDataProvider
-from app.middleware import SecurityHeadersMiddleware
 from app.validators import BookingRequest, sanitize_search_params, validate_api_key, validate_hotel_id, sanitize_log_data
 
 # Initialize Flask app
@@ -34,8 +33,8 @@ booking_agent = BookingAPIAgent()
 integration_agent = IntegrationAgent()
 
 # Mount static files and templates
-app.static_folder = 'static'
-app.template_folder = 'templates'
+app.static_folder = 'app/static'
+app.template_folder = 'app/templates'
 
 @app.route("/", methods=['GET'])
 def read_root():
