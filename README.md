@@ -62,6 +62,7 @@ pip install -r requirements.txt
 
 3. Run the application using the provided script:
 ```bash
+chmod +x run_dev.sh  # Make the script executable (first time only)
 ./run_dev.sh
 ```
 
